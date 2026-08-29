@@ -85,6 +85,13 @@
   .ln.lvc-e2,.lb i.lvc-e2{color:#C9702F;background:#C9702F}
   .ln.lvc-p1,.lb i.lvc-p1{color:#C4456B;background:#C4456B}
   .ln.lvc-m1,.ln.lvc-m2,.ln.lvc-m3,.ln.lvc-p2,.ln.lvc-e2,.ln.lvc-p1{background:none}
+    .hsec{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px 18px;margin-bottom:12px}
+  .hsec h3{font-size:14px;font-weight:900;margin-bottom:8px;color:var(--primary)}
+  .hsec p{font-size:13px;line-height:1.75;margin-bottom:8px}
+  .hsec p:last-child{margin-bottom:0}
+  .hlist{margin:0 0 8px 18px;padding:0}
+  .hlist li{font-size:13px;line-height:1.7;margin-bottom:4px}
+  .hpre{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:Poppins,monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;margin-bottom:8px}
   .zkr{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;opacity:.5}
   .zkr.got{opacity:1}
   .zke{font-size:24px;flex:0 0 auto}
@@ -95,10 +102,11 @@
   .zktag.N{background:#EEF1F4;color:#8A94A0}
   .zktag.R{background:#E3F0FF;color:#2E7BC4}
   .zktag.SR{background:#FFF1DC;color:#C9702F}
+  .zktag.H{background:#EAE6FF;color:#5B49C4}
   .ach-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
   .achb{background:var(--panel);border:1.5px solid var(--border);border-radius:12px;padding:9px 8px;opacity:.55}
   .achb.got{opacity:1;border-color:var(--accent);background:#FFF8EE}
-  .achb .an{font-size:10px;font-weight:800;line-height:1.3}
+  .achb .an{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;line-height:1.3;letter-spacing:.1px}
   .achb .ad{font-size:8px;color:var(--sub);font-weight:600;margin-top:3px;line-height:1.3}
   .combo-tag{font-family:'Poppins';font-weight:800;font-size:13px;color:var(--accent)}
   .manage-btn{display:flex;align-items:center;gap:12px;background:var(--panel);border:1.5px solid var(--border);
@@ -204,7 +212,7 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="brand"><div class="logo">WORD <span>UP!</span></div><div class="sub">中学〜準1級レベル / 5134語</div></div>
+    <div class="brand" onclick="renderHelp()" style="cursor:pointer"><div class="logo">WORD <span>UP!</span></div><div class="sub" id="brandSub">中学〜準1級レベル</div></div>
     <div class="grp-pill" id="grpPill">全部</div>
   </div>
   <div class="screen" id="screen"></div>
@@ -311,6 +319,8 @@ async function boot(){
       <p class="help">このアプリは data フォルダと同じ場所に置いて、Webサーバー（GitHub Pages など）経由で開いてください。ファイルを直接ダブルクリックして開くと読み込めません。</p></div>`;
     return;
   }
+  const sub=document.getElementById('brandSub');
+  if(sub)sub.textContent='中学〜準1級レベル / '+META.total.toLocaleString()+'語';
   LEVELS.length=0;
   META.levels.forEach(l=>LEVELS.push({id:l.id,name:l.name}));
   LEVELS.push({id:'my',name:'マイ単語帳'});
@@ -322,8 +332,67 @@ async function boot(){
   for(const l of META.levels){ if(!LOADED[l.id]){ try{await ensureLevel(l.id);}catch(e){} } }
   if(state.onboarded&&document.querySelector('.ring-card'))renderHome();
 }
+function renderHelp(){
+  const sec=(t,body)=>`<div class="hsec"><h3>${t}</h3>${body}</div>`;
+  const li=a=>'<ul class="hlist">'+a.map(x=>`<li>${x}</li>`).join('')+'</ul>';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>❓ 使い方ガイド</h2></div>
+    <p class="help" style="margin-bottom:14px">中学レベルから英検準1級レベルまで、${META?META.total.toLocaleString():''}語を収録した英単語アプリです。無料で、広告もアカウント登録もありません。</p>
+
+    ${sec('1. まずレベルを選ぶ',
+      '<p>ホームの「🎓 レベルを選ぶ」から、自分に合ったレベルを選びます。選んだレベルの単語だけが出題されるので、いきなり難しい単語が出て困ることはありません。</p>'+
+      li(['<b>中1・中2</b> — 学校の教科書レベル',
+          '<b>中3・高校受験</b> — 高校入試と英検3級レベル',
+          '<b>準2級・2級レベル</b> — 高校の内容と大学入試',
+          '<b>準1級レベル</b> — 大学中級・難関語'])+
+      '<p>レベルはいつでも切り替えられます。「すべて」を選べば全レベルから出題されます。</p>')}
+
+    ${sec('2. 学習モードを使い分ける',
+      li(['<b>フラッシュカード</b> — カードをめくって意味を確認。最初に単語を眺めるのに向いています',
+          '<b>4択クイズ</b> — 意味を選ぶ。覚えたか手早く確認できます',
+          '<b>マッチング</b> — 英語と日本語のペアをそろえるゲーム',
+          '<b>書いて覚える</b> — 意味を見てつづりを入力。ヒントは押すたびに3段階（文字数 → 頭文字 → 1文字おき）で親切になります。まちがえても「もう一度」で書き直せます',
+          '<b>リスニング</b> — 音声だけを聞いて、意味を選ぶか、つづりを書きます',
+          '<b>タイムアタック</b> — 60秒で何問正解できるか挑戦'])+
+      '<p>まちがえた単語は「⚠️ 苦手だけ」に自動でたまります。テスト前はここを潰すのが効率的です。</p>')}
+
+    ${sec('3. XPとレベル、称号',
+      '<p>正解するとXPがたまり、レベルが上がります。レベルは40段階あり、上がるごとに <b>First Word</b> から <b>Word Legend</b> まで称号が変わります。</p>'+
+      li(['4択クイズ 正解 +10 XP','書いて覚える 正解 +15 XP',
+          'リスニング（選ぶ）+12 XP／（書く）+18 XP',
+          'マッチング クリア +30 XP','フラッシュカードで「覚えた」+3 XP',
+          '3コンボ以上で +5、5コンボ以上で +10 のボーナス']))}
+
+    ${sec('4. ごほうび券',
+      '<p>レベルアップ・実績解除・5日連続学習のたびに「ごほうび券」が1枚もらえます。券の内容は保護者の方と決めて、券の画面の「⚙ 券の内容を変更」から自由に書き換えられます。</p>'+
+      '<p>使うときは券の画面を保護者に見せてから「使う」を押します。使った履歴が残るので、あとから確認できます。</p>')}
+
+    ${sec('5. 図鑑と実績',
+      '<p>「📖 ことばの図鑑」は英単語の語源や由来を集めるコレクションです。レベルアップ・実績解除・5日連続学習のときに、未発見のカードから1枚もらえます。ふつう・レア・超レアがあり、超レアほど出にくくなっています。</p>'+
+      '<p>「🏅 実績」は40種類。条件を満たすと自動で解除されます。<b>ここに表示されていない実績や図鑑も存在します。</b>いろいろな遊び方を試してみてください。</p>')}
+
+    ${sec('6. 自分の単語を追加する',
+      '<p>「単語を増やす・編集する」から、教科書やテスト範囲の単語を登録できます。「まとめて」タブに次の形式で貼り付ければ、一度に登録できます。</p>'+
+      '<pre class="hpre">apple りんご\nimportant 重要な\nachieve 達成する</pre>'+
+      '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>')}
+
+    ${sec('7. よくある質問',
+      '<p><b>音が出ません</b><br>端末の音量と、iPhoneの場合は消音（マナー）スイッチを確認してください。音声は端末に内蔵された読み上げ機能を使っています。</p>'+
+      '<p><b>別の端末で続きをやりたい</b><br>学習の記録はその端末のブラウザの中だけに保存されます。端末をまたいだ引き継ぎはできません。</p>'+
+      '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。ご注意ください。</p>'+
+      '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
+
+    ${sec('8. 保護者の方へ',
+      '<p>広告・課金・アカウント登録・データ収集は一切ありません。オフラインでも一度読み込めば動作します。</p>'+
+      '<p>ごほうび券は、テストの点数などの「結果」ではなく、学習の積み重ね（XP）に連動するよう設計しています。券の内容と使い方のルールは、お子さんと一緒に決めることをおすすめします。</p>')}
+
+    <button class="btn btn-primary" style="margin-top:6px" onclick="renderHome()">ホームに戻る</button>`;
+}
 function renderZukan(){
   const have=new Set(state.cards);
+  const norm=cardsNormal();
+  const got=norm.filter(c=>have.has(c.id)).length;
   const sec=(r,label)=>{
     const cs=CARDS.filter(c=>c.r===r);
     return `<div class="section-label">${label}（${cs.filter(c=>have.has(c.id)).length}/${cs.length}）</div>`+
@@ -331,11 +400,15 @@ function renderZukan(){
         ?`<div class="zkr got"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)} <span class="zktag ${c.r}">${c.r==='SR'?'超レア':c.r==='R'?'レア':'ふつう'}</span></div><div class="zkd">${esc(c.d)}</div></div></div>`
         :`<div class="zkr"><span class="zke">🔒</span><div class="zkb"><div class="zkn" style="color:var(--sub)">？？？</div><div class="zkd">レベルアップ・実績解除・5日連続学習で手に入る</div></div></div>`).join('');
   };
+  const hid=CARDS.filter(c=>c.r==='H'&&have.has(c.id));
+  const hidSec=hid.length?`<div class="section-label">🔮 隠し図鑑（${hid.length}）</div>`+
+    hid.map(c=>`<div class="zkr got" style="border-color:#7B6BD9;background:#F4F2FF"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)} <span class="zktag H">隠し</span></div><div class="zkd">${esc(c.d)}</div></div></div>`).join(''):'';
   screen.innerHTML=`
     <button class="back" onclick="renderHome()">‹ 戻る</button>
-    <div class="mode-head"><h2>📖 ことばの図鑑</h2><span class="quiz-score">${state.cards.length}/${CARDS.length}</span></div>
-    ${state.cards.length>=CARDS.length?'<div class="ring-card" style="justify-content:center"><b style="color:var(--accent)">🏆 全種コンプリート！</b></div>':''}
-    <p class="help" style="margin-bottom:10px">英単語の語源や由来の豆知識を集める図鑑。覚えた単語の背景を知ると記憶に残りやすくなる。</p>
+    <div class="mode-head"><h2>📖 ことばの図鑑</h2><span class="quiz-score">${got}/${norm.length}</span></div>
+    ${got>=norm.length?'<div class="ring-card" style="justify-content:center"><b style="color:var(--accent)">🏆 コンプリート！</b></div>':''}
+    <p class="help" style="margin-bottom:10px">英単語の語源や由来の豆知識を集める図鑑。語の背景を知ると記憶に残りやすくなる。</p>
+    ${hidSec}
     ${sec('SR','⭐ 超レア')}
     ${sec('R','🔹 レア')}
     ${sec('N','・ ふつう')}`;
@@ -352,47 +425,76 @@ if(!state.ach)state.ach=[];
 if(!state.streak)state.streak={day:'',count:0};
 
 const ACH=[
- {id:'first',name:'はじめの一歩',desc:'クイズを1回クリア'},
- {id:'combo5',name:'コンボスター',desc:'5コンボ達成'},
- {id:'combo10',name:'コンボマスター',desc:'10コンボ達成'},
- {id:'combo20',name:'無双',desc:'20コンボ達成'},
- {id:'learn50',name:'50語ハンター',desc:'覚えた単語 50語'},
- {id:'learn150',name:'150語コレクター',desc:'覚えた単語 150語'},
- {id:'learn300',name:'300語レジェンド',desc:'覚えた単語 300語'},
- {id:'learn600',name:'600語マスター',desc:'覚えた単語 600語'},
- {id:'learn1000',name:'1000語の頂',desc:'覚えた単語 1000語'},
- {id:'learn2000',name:'2000語の境地',desc:'覚えた単語 2000語'},
- {id:'streak3',name:'3日連続',desc:'3日連続で学習'},
- {id:'streak7',name:'週間パーフェクト',desc:'7日連続で学習'},
- {id:'streak14',name:'2週間の習慣',desc:'14日連続で学習'},
- {id:'streak30',name:'鉄の意志',desc:'30日連続で学習'},
- {id:'lv5',name:'Lv.5 到達',desc:'レベル5になる'},
- {id:'lv10',name:'Lv.10 到達',desc:'レベル10になる'},
- {id:'lv20',name:'Lv.20 到達',desc:'レベル20になる'},
- {id:'ta15',name:'スピードキング',desc:'タイムアタック15問'},
- {id:'ta25',name:'音速の語彙',desc:'タイムアタック25問'},
- {id:'spell10',name:'つづりの達人',desc:'書いて覚えるで10問正解'},
- {id:'listen10',name:'耳が育った',desc:'リスニングで10問正解'},
- {id:'dict10',name:'ディクテーター',desc:'聞いて書くで10問正解'},
- {id:'perfect',name:'完全制覇',desc:'10問クイズで全問正解'},
- {id:'lvclear',name:'レベル制覇',desc:'1つのレベルの単語を全部覚える'},
+ {id:'first',name:'First Step',desc:'クイズを1回クリア'},
+ {id:'combo5',name:'Combo Starter',desc:'5コンボ達成'},
+ {id:'combo10',name:'Combo Master',desc:'10コンボ達成'},
+ {id:'combo20',name:'Unstoppable',desc:'20コンボ達成'},
+ {id:'combo30',name:'Chain Legend',desc:'30コンボ達成'},
+ {id:'learn50',name:'Fifty Words',desc:'覚えた単語 50語'},
+ {id:'learn150',name:'Word Collector',desc:'覚えた単語 150語'},
+ {id:'learn300',name:'Three Hundred',desc:'覚えた単語 300語'},
+ {id:'learn600',name:'Vocabulary Builder',desc:'覚えた単語 600語'},
+ {id:'learn1000',name:'Thousand Club',desc:'覚えた単語 1000語'},
+ {id:'learn2000',name:'Lexicon Giant',desc:'覚えた単語 2000語'},
+ {id:'learn3500',name:'Word Titan',desc:'覚えた単語 3500語'},
+ {id:'learn5000',name:'Living Dictionary',desc:'覚えた単語 5000語'},
+ {id:'streak3',name:'Three in a Row',desc:'3日連続で学習'},
+ {id:'streak7',name:'Perfect Week',desc:'7日連続で学習'},
+ {id:'streak14',name:'Two Weeks Strong',desc:'14日連続で学習'},
+ {id:'streak30',name:'Iron Will',desc:'30日連続で学習'},
+ {id:'streak60',name:'Unbroken',desc:'60日連続で学習'},
+ {id:'streak100',name:'Century Streak',desc:'100日連続で学習'},
+ {id:'lv5',name:'Level Five',desc:'レベル5に到達'},
+ {id:'lv10',name:'Double Digits',desc:'レベル10に到達'},
+ {id:'lv20',name:'Level Twenty',desc:'レベル20に到達'},
+ {id:'lv30',name:'Level Thirty',desc:'レベル30に到達'},
+ {id:'lv40',name:'Max Level',desc:'レベル40に到達'},
+ {id:'ta15',name:'Speed King',desc:'タイムアタック15問'},
+ {id:'ta25',name:'Lightning Mind',desc:'タイムアタック25問'},
+ {id:'ta35',name:'Sonic Vocab',desc:'タイムアタック35問'},
+ {id:'spell10',name:'Perfect Speller',desc:'書いて覚えるで10問正解'},
+ {id:'spell20',name:'Spelling Bee',desc:'書いて覚えるで20問正解'},
+ {id:'listen10',name:'Good Ears',desc:'リスニングで10問正解'},
+ {id:'dict10',name:'Dictation Pro',desc:'聞いて書くで10問正解'},
+ {id:'perfect',name:'Flawless',desc:'10問クイズで全問正解'},
+ {id:'perfect20',name:'Spotless',desc:'20問クイズで全問正解'},
+ {id:'q100',name:'Hundred Answers',desc:'累計100問に回答'},
+ {id:'q500',name:'Five Hundred',desc:'累計500問に回答'},
+ {id:'q2000',name:'Two Thousand',desc:'累計2000問に回答'},
+ {id:'cards10',name:'Card Hunter',desc:'図鑑を10種あつめる'},
+ {id:'cards30',name:'Card Scholar',desc:'図鑑を30種あつめる'},
+ {id:'cards64',name:'Curator',desc:'図鑑をコンプリート'},
+ {id:'lvclear',name:'Level Conqueror',desc:'1つのレベルの単語を全部覚える'},
 ];
+const ACH_SECRET=[
+ {id:'nightowl',name:'Night Owl',desc:'深夜0時〜4時に学習した'},
+ {id:'earlybird',name:'Early Bird',desc:'早朝5時〜7時に学習した'},
+ {id:'marathon',name:'Marathon',desc:'1日に100問回答した'},
+ {id:'nemesis',name:'Nemesis',desc:'同じ単語を5回まちがえた'},
+ {id:'worldtour',name:'World Tour',desc:'6つのレベルすべてで学習した'},
+ {id:'allrounder',name:'All-Rounder',desc:'5つの学習モードすべてを使った'},
+ {id:'soundlover',name:'Sound Lover',desc:'発音ボタンを50回押した'},
+ {id:'fearless',name:'Fearless',desc:'レベル3以下で準1級に挑戦した'},
+ {id:'comeback',name:'Comeback',desc:'苦手を10語以上ためてから0にした'},
+ {id:'collector',name:'Secret Keeper',desc:'隠し図鑑を手に入れた'},
+];
+function achAll(){return ACH.concat(ACH_SECRET);}
+function isSecret(id){return ACH_SECRET.some(a=>a.id===id);}
 const TITLES=[
- {e:'🌱',n:'First Word',j:'はじめの一語'},
- {e:'🔤',n:'Word Collector',j:'言葉あつめ'},
- {e:'🧩',n:'Phrase Hunter',j:'語句の狩人'},
- {e:'📝',n:'Sentence Builder',j:'文を組む者'},
- {e:'📖',n:'Story Reader',j:'物語の読み手'},
- {e:'💬',n:'Conversation Rider',j:'会話の乗り手'},
- {e:'✒️',n:'Essay Writer',j:'書き手'},
- {e:'🎤',n:'Debate Speaker',j:'論じる者'},
- {e:'📰',n:'News Reader',j:'世界を読む者'},
- {e:'🌊',n:'Novel Diver',j:'物語に潜る者'},
- {e:'🏛',n:'Word Master',j:'語彙の達人'},
- {e:'🧠',n:'Bilingual Mind',j:'二言語の頭脳'},
- {e:'🌐',n:'Global Communicator',j:'世界と話す者'},
- {e:'🗝',n:'Language Sage',j:'言葉の賢者'},
- {e:'👑',n:'Word Legend',j:'言葉の伝説'},
+ {e:'🌱',n:'First Word'},{e:'🔤',n:'Word Collector'},{e:'🧩',n:'Phrase Hunter'},
+ {e:'📝',n:'Sentence Builder'},{e:'🚶',n:'Grammar Walker'},{e:'🗒',n:'Note Taker'},
+ {e:'💬',n:'Small Talker'},{e:'📖',n:'Story Reader'},{e:'✉️',n:'Letter Writer'},
+ {e:'🎧',n:'Ear Trainer'},{e:'🔊',n:'Sound Shaper'},{e:'🎬',n:'Scene Reader'},
+ {e:'📰',n:'News Reader'},{e:'✒️',n:'Essay Writer'},{e:'🎤',n:'Speech Maker'},
+ {e:'🌊',n:'Novel Diver'},{e:'🧭',n:'Idiom Explorer'},{e:'🏗',n:'Structure Master'},
+ {e:'🎯',n:'Precision Reader'},{e:'🗣',n:'Fluent Speaker'},{e:'📚',n:'Wide Reader'},
+ {e:'🧪',n:'Science Reader'},{e:'⚖️',n:'Debate Judge'},{e:'🎭',n:'Nuance Catcher'},
+ {e:'🪶',n:'Style Writer'},{e:'🧠',n:'Bilingual Mind'},{e:'🔍',n:'Close Reader'},
+ {e:'📜',n:'Classic Reader'},{e:'🏛',n:'Academic Reader'},{e:'🌐',n:'Global Communicator'},
+ {e:'🗞',n:'Editorial Reader'},{e:'🧾',n:'Report Writer'},{e:'🎓',n:'Scholar of Words'},
+ {e:'🕊',n:'Prose Artist'},{e:'🗝',n:'Language Sage'},{e:'🌋',n:'Etymology Master'},
+ {e:'🏔',n:'Summit Reader'},{e:'💎',n:'Word Jeweler'},{e:'🦉',n:'Grand Lexicographer'},
+ {e:'👑',n:'Word Legend'},
 ];
 function titleOf(l){return TITLES[Math.min(l,TITLES.length)-1];}
 const CARDS=[
@@ -426,10 +528,57 @@ const CARDS=[
  {id:'boycott',r:'SR',e:'🚫',n:'boycott',d:'19世紀アイルランドの土地管理人チャールズ・ボイコットの名から。地域ぐるみで彼と取引を拒んだ事件が語になった'},
  {id:'silhouette',r:'SR',e:'👤',n:'silhouette',d:'フランスの財務大臣エティエンヌ・ド・シルエットの名から。極端な倹約策を皮肉って安価な影絵にその名がついた'},
  {id:'ok',r:'SR',e:'👌',n:'OK',d:'1839年ボストンの新聞で流行した綴り遊び oll korrect（all correct）の略が起源という説が最も有力'},
+ {id:'calendar',r:'N',e:'📅',n:'calendar',d:'ラテン語 calendae（各月の 1日）から。もとは借金の利息を計算する日を指した'},
+ {id:'school',r:'N',e:'🏫',n:'school',d:'ギリシャ語 skholē（余暇）が語源。学問は暇のある人がするものだった'},
+ {id:'august',r:'N',e:'👑',n:'August',d:'初代ローマ皇帝アウグストゥスの名から。自分の名を月に付けさせた'},
+ {id:'july',r:'N',e:'🗡',n:'July',d:'ユリウス・カエサルの名から。生まれ月に自分の名を付けた'},
+ {id:'saturday',r:'N',e:'🪐',n:'Saturday',d:'土星（Saturn）の日。曜日名にはローマ神と北欧神の名が混ざっている'},
+ {id:'dandelion',r:'N',e:'🦁',n:'dandelion',d:'フランス語 dent de lion（ライオンの歯）から。葉のギザギザが由来'},
+ {id:'pupil',r:'N',e:'👁',n:'pupil',d:'ラテン語 pupilla（小さな人形）から。瞳をのぞくと相手の小さな姿が映ることに由来。「生徒」の意味も同語源'},
+ {id:'candidate',r:'N',e:'🤍',n:'candidate',d:'ラテン語 candidus（白い）から。古代ローマの立候補者は純白のトーガを着た'},
+ {id:'rival',r:'N',e:'🌊',n:'rival',d:'ラテン語 rivalis（同じ川を使う者）から。水利をめぐって争ったことが語源'},
+ {id:'travel',r:'N',e:'🧳',n:'travel',d:'古フランス語 travail（苦労）と同語源。昔の旅は苦行そのものだった'},
+ {id:'husband',r:'N',e:'🏠',n:'husband',d:'古ノルド語 húsbóndi（家の主）から。農業の「husbandry」も同じ語根'},
+ {id:'lord',r:'N',e:'🍞',n:'lord / lady',d:'古英語 hlāfweard（パンの番人）と hlǣfdige（パンをこねる人）から。支配者はパンを配る人だった'},
+ {id:'curfew',r:'N',e:'🔥',n:'curfew',d:'古フランス語 covrefeu（火を覆え）から。夜に火を消させた中世の習慣が「門限」に'},
+ {id:'alarm',r:'N',e:'⚔️',n:'alarm',d:'イタリア語 all\'arme（武器を取れ）から。もとは戦いの呼びかけだった'},
+ {id:'squirrel',r:'N',e:'🐿',n:'squirrel',d:'ギリシャ語 skiouros（影 + 尾）から。尾を日傘のように使う姿から名づけられた'},
+ {id:'island',r:'N',e:'🏝',n:'island',d:'元の綴りは iland。isle（ラテン語系）に引きずられて s が誤って挿入された、綴りの事故'},
+ {id:'mortgage',r:'R',e:'🏦',n:'mortgage',d:'古フランス語 mort（死）+ gage（誓約）。完済か不履行かで「死ぬ」誓約という意味'},
+ {id:'alligator',r:'R',e:'🐊',n:'alligator',d:'スペイン語 el lagarto（そのトカゲ）が、そのまま一語として英語に取り込まれた'},
+ {id:'orange',r:'R',e:'🍊',n:'orange',d:'サンスクリット nāraṅga が語源。a norange が an orange と誤って区切られ n が消えた'},
+ {id:'sinister',r:'R',e:'⬅️',n:'sinister',d:'ラテン語で「左」の意味。左を不吉とする占いの伝統から「邪悪な」の意味になった'},
+ {id:'hazard',r:'R',e:'🎲',n:'hazard',d:'アラビア語のサイコロ遊び az-zahr が語源とされる。賭けの不確実さが「危険」に'},
+ {id:'sarcasm',r:'R',e:'😬',n:'sarcasm',d:'ギリシャ語 sarkazein（肉を裂く）から。皮肉は言葉で肉を裂く行為だった'},
+ {id:'cemetery',r:'R',e:'🪦',n:'cemetery',d:'ギリシャ語 koimētērion（眠る場所）から。死を眠りと捉える発想が語に残る'},
+ {id:'malaria',r:'R',e:'🦟',n:'malaria',d:'イタリア語 mala aria（悪い空気）から。原因が蚊と判明する前の理解が名前に残った'},
+ {id:'influenza',r:'R',e:'🤒',n:'influenza',d:'イタリア語で「影響」。星の影響で流行病が起こると考えられていた。influence と同語源'},
+ {id:'dinosaur',r:'R',e:'🦕',n:'dinosaur',d:'ギリシャ語 deinos（恐ろしい）+ sauros（トカゲ）。1842年にオーウェンが名づけた'},
+ {id:'atlas',r:'R',e:'🗺',n:'atlas',d:'天を支える巨人アトラスから。16世紀の地図帳の表紙に描かれたのが定着した'},
+ {id:'music',r:'R',e:'🎼',n:'music',d:'ギリシャ神話の女神ムーサ（Muse）から。museum も「ムーサに捧げる場所」で同語源'},
+ {id:'tantalize',r:'SR',e:'🍇',n:'tantalize',d:'ギリシャ神話のタンタロスから。水と果実に囲まれながら永久に届かない罰を受けた'},
+ {id:'narcissism',r:'SR',e:'🪞',n:'narcissism',d:'水面の自分に恋した美青年ナルキッソスから。彼が変わった花が水仙（narcissus）'},
+ {id:'gerrymander',r:'SR',e:'🦎',n:'gerrymander',d:'1812年、ゲリー知事が作った選挙区の形がサラマンダー（火竜）に似ていたことから生まれた合成語'},
+ {id:'lynch',r:'SR',e:'⚖️',n:'lynch',d:'18世紀アメリカのリンチ判事の名から。正規の裁判によらない私刑を指すようになった'},
+ {id:'sideburns',r:'SR',e:'🧔',n:'sideburns',d:'南北戦争のバーンサイド将軍の独特な頬ひげから。burnside が逆さになって sideburns に'},
+ {id:'nicotine',r:'SR',e:'🚬',n:'nicotine',d:'16世紀にタバコをフランスに紹介した大使ジャン・ニコの名から'},
+ {id:'dord',r:'H',e:'👻',n:'dord',d:'1934年のウェブスター辞典に載った実在しない語。「D or d（密度の略記）」を一語と誤読した結果で、5年間も辞書に潜んでいた。こうした語を幽霊語（ghost word）と呼ぶ'},
+ {id:'esquivalience',r:'H',e:'🕳',n:'esquivalience',d:'2001年の New Oxford American Dictionary が意図的に載せた偽の語。無断複製を検出するための罠で、実際に他社の辞書サイトへの流用が発覚した'},
+ {id:'buffalo',r:'H',e:'🐃',n:'Buffalo buffalo...',d:'"Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo" は文法的に正しい英文。地名・動物・動詞の3つの buffalo だけで文が成立する'},
+ {id:'ough',r:'H',e:'🔡',n:'-ough',d:'同じ綴りなのに読みが割れる英語最大の難所。through / though / tough / cough / bough / thorough がすべて異なる発音になる'},
+ {id:'setrun',r:'H',e:'📕',n:'set / run',d:'語義の数で英語最多を争う2語。かつては set が辞書で最長の項目とされ、近年の改訂では run が最多になったと言われる。短い語ほど意味を抱え込む'},
+ {id:'flocci',r:'H',e:'🪶',n:'floccinaucinihilipilification',d:'29文字。「何かを無価値と見積もること」を意味し、技術用語を除く英語で最も長い部類の語として辞書に載っている'},
 ];
 function grantCard(){
   const have=new Set(state.cards||[]);
-  const pool=CARDS.filter(c=>!have.has(c.id));
+  const hid=CARDS.filter(c=>c.r==='H'&&!have.has(c.id));
+  if(hid.length&&Math.random()<0.03){
+    const pick=hid[Math.floor(Math.random()*hid.length)];
+    state.cards.push(pick.id);save();
+    setTimeout(()=>{toast('🔮 隠し図鑑を発見！ '+pick.e+' '+pick.n);pop();},1700);
+    return;
+  }
+  const pool=CARDS.filter(c=>c.r!=='H'&&!have.has(c.id));
   if(!pool.length)return;
   const W={N:6,R:3,SR:1};
   let tot=0;pool.forEach(c=>tot+=W[c.r]);
@@ -438,8 +587,29 @@ function grantCard(){
   state.cards.push(pick.id);save();
   setTimeout(()=>{toast('📖 ことばの図鑑に追加: '+pick.e+' '+pick.n+(pick.r==='SR'?'（超レア！）':pick.r==='R'?'（レア）':''));pop();},1700);
 }
-function lvlInfo(xp){let l=1,need=100,acc=0;while(xp>=acc+need){acc+=need;l++;need=100*l;}return{level:l,cur:xp-acc,need};}
+function cardsNormal(){return CARDS.filter(c=>c.r!=='H');}
+function cardsFound(r){return CARDS.filter(c=>c.r===r&&state.cards.includes(c.id)).length;}
+const MAXLV=40;
+function xpNeed(l){return 60*l+4*l*l;}
+function lvlInfo(xp){
+  let l=1,acc=0,need=xpNeed(1);
+  while(l<MAXLV&&xp>=acc+need){acc+=need;l++;need=xpNeed(l);}
+  if(l>=MAXLV)return{level:MAXLV,cur:Math.max(0,xp-acc),need:xpNeed(MAXLV),max:true};
+  return{level:l,cur:xp-acc,need};
+}
 if(!state.cards)state.cards=[];
+if(!state.stat)state.stat={day:'',dayQ:0,totalQ:0,speak:0,modes:[],lvPlayed:[],maxWrong:0,peakWeak:0};
+function bumpQ(){
+  const t=todayStr();
+  if(state.stat.day!==t){state.stat.day=t;state.stat.dayQ=0;}
+  state.stat.dayQ++;state.stat.totalQ++;
+  const h=new Date().getHours();
+  if(h<5)unlock('nightowl');
+  else if(h<8)unlock('earlybird');
+  if(state.stat.dayQ>=100)unlock('marathon');
+}
+function markMode(m){ if(!state.stat.modes.includes(m)){state.stat.modes.push(m);save();} }
+function markLevel(l){ if(l&&l!=='all'&&l!=='my'&&!state.stat.lvPlayed.includes(l)){state.stat.lvPlayed.push(l);save();} }
 if(!state.tickets){state.tickets={earned:Math.max(0,lvlInfo(state.xp).level-1)+state.ach.length,used:[]};save();}
 if(!state.ticketLabel)state.ticketLabel='ゲーム30分';
 state.tickets.used=state.tickets.used.map(u=>typeof u==='string'?{d:u,l:'ゲーム30分'}:u);
@@ -461,36 +631,47 @@ function addXp(n){
   state.xp+=n;
   const after=lvlInfo(state.xp).level;
   save();
-  if(after>before){pop();setTimeout(()=>toast('🎉 Lv.'+after+'「'+titleOf(after).j+'」に到達！'),350);grantTicket(after-before);grantCard();}
+  if(after>before){pop();setTimeout(()=>toast('🎉 Lv.'+after+' — '+titleOf(after).n+' に到達！'),350);grantTicket(after-before);grantCard();}
   checkAch();
 }
 function unlock(id){
   if(state.ach.includes(id))return;
   state.ach.push(id);save();
-  const a=ACH.find(x=>x.id===id);
-  setTimeout(()=>toast('🏅 実績解除: '+(a?a.name:id)),700);
+  const a=achAll().find(x=>x.id===id);
+  setTimeout(()=>toast((isSecret(id)?'🕵️ 隠し実績を発見: ':'🏅 実績解除: ')+(a?a.name:id)),700);
   grantTicket(1);grantCard();
 }
 function checkAch(){
   const learned=state.words.filter(x=>x.learned).length;
   const lv=lvlInfo(state.xp).level;
-  if(state.maxCombo>=5)unlock('combo5');
-  if(state.maxCombo>=10)unlock('combo10');
-  if(state.maxCombo>=20)unlock('combo20');
-  [[50,'learn50'],[150,'learn150'],[300,'learn300'],[600,'learn600'],[1000,'learn1000'],[2000,'learn2000']]
-    .forEach(([n,id])=>{if(learned>=n)unlock(id);});
-  [[3,'streak3'],[7,'streak7'],[14,'streak14'],[30,'streak30']]
+  const st=state.stat;
+  [[5,'combo5'],[10,'combo10'],[20,'combo20'],[30,'combo30']].forEach(([n,id])=>{if(state.maxCombo>=n)unlock(id);});
+  [[50,'learn50'],[150,'learn150'],[300,'learn300'],[600,'learn600'],[1000,'learn1000'],
+   [2000,'learn2000'],[3500,'learn3500'],[5000,'learn5000']].forEach(([n,id])=>{if(learned>=n)unlock(id);});
+  [[3,'streak3'],[7,'streak7'],[14,'streak14'],[30,'streak30'],[60,'streak60'],[100,'streak100']]
     .forEach(([n,id])=>{if(state.streak.count>=n)unlock(id);});
-  [[5,'lv5'],[10,'lv10'],[20,'lv20']].forEach(([n,id])=>{if(lv>=n)unlock(id);});
-  if((state.best.ta||0)>=15)unlock('ta15');
-  if((state.best.ta||0)>=25)unlock('ta25');
+  [[5,'lv5'],[10,'lv10'],[20,'lv20'],[30,'lv30'],[40,'lv40']].forEach(([n,id])=>{if(lv>=n)unlock(id);});
+  [[15,'ta15'],[25,'ta25'],[35,'ta35']].forEach(([n,id])=>{if((state.best.ta||0)>=n)unlock(id);});
   if((state.best.spell||0)>=10)unlock('spell10');
+  if((state.best.spell||0)>=20)unlock('spell20');
   if((state.best.ls_choice||0)>=10)unlock('listen10');
   if((state.best.ls_dict||0)>=10)unlock('dict10');
+  [[100,'q100'],[500,'q500'],[2000,'q2000']].forEach(([n,id])=>{if(st.totalQ>=n)unlock(id);});
+  const cn=cardsNormal().filter(c=>state.cards.includes(c.id)).length;
+  [[10,'cards10'],[30,'cards30']].forEach(([n,id])=>{if(cn>=n)unlock(id);});
+  if(cn>=cardsNormal().length)unlock('cards64');
+  if(CARDS.some(c=>c.r==='H'&&state.cards.includes(c.id)))unlock('collector');
   LEVELS.filter(l=>l.id!=='my').forEach(l=>{
-    const ws=lvStat(l.id);
-    if(ws.total>0&&ws.learned>=ws.total)unlock('lvclear');
+    const w=lvStat(l.id);
+    if(w.total>0&&w.learned>=w.total)unlock('lvclear');
   });
+  if(st.lvPlayed.length>=6)unlock('worldtour');
+  if(st.modes.length>=5)unlock('allrounder');
+  if(st.speak>=50)unlock('soundlover');
+  if(st.maxWrong>=5)unlock('nemesis');
+  const wk=weakWords().length;
+  if(wk>state.stat.peakWeak){state.stat.peakWeak=wk;}
+  if(state.stat.peakWeak>=10&&wk===0)unlock('comeback');
 }
 function lvStat(lv){
   const ids=new Set(state.groups.filter(g=>g.lv===lv).map(g=>g.id));
@@ -515,7 +696,7 @@ function norm(s){ return s.toLowerCase().replace(/\s+/g,' ').trim(); }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
 function updatePill(){ $('grpPill').textContent=groupName(currentGroup); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function speak(text,rate){ try{ if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate||.9; speechSynthesis.speak(u); }catch(e){} }
+function speak(text,rate){ try{ if(state&&state.stat){state.stat.speak++;} if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate||.9; speechSynthesis.speak(u); }catch(e){} }
 function speakCur(){ const c=fc.list[fc.i]; if(c)speak(c.en); }
 function speakQuiz(){ const c=qz.list[qz.i]; if(c)speak(c.en); }
 function speakSp(){ const c=sp.list[sp.i]; if(c)speak(c.en); }
@@ -553,6 +734,7 @@ function renderHome(){
         <div class="stat"><div>覚えた<b>${learned}</b></div><div>全部<b>${total}</b></div></div>
       </div>
     </div>
+    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderHelp()"><span>❓ 使い方ガイド</span><span style="color:var(--sub);font-size:12px">はじめての人へ</span></button>
     <div class="section-label">🎓 レベルを選ぶ</div>
     <div class="grp-scroll">${lvChips}</div>
     <div class="section-label">📚 グループを選ぶ</div>
@@ -560,15 +742,15 @@ function renderHome(){
     <div class="ring-card" style="padding:16px 20px;gap:14px">
       <div style="flex:1">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-          <span style="font-family:Poppins;font-weight:800;font-size:18px;color:var(--primary)">Lv.${lvlInfo(state.xp).level}</span> <span style="font-size:12px;font-weight:800;color:var(--accent)">${titleOf(lvlInfo(state.xp).level).e} ${titleOf(lvlInfo(state.xp).level).j}</span>
-          <span style="font-size:11px;color:var(--sub);font-weight:700">${state.streak.count>=2?'🔥 '+state.streak.count+'日連続':'今日も今日も一歩'}</span>
+          <span style="font-family:Poppins;font-weight:800;font-size:18px;color:var(--primary)">Lv.${lvlInfo(state.xp).level}</span> <span style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.2px">${titleOf(lvlInfo(state.xp).level).e} ${titleOf(lvlInfo(state.xp).level).n}</span>
+          <span style="font-size:11px;color:var(--sub);font-weight:700">${state.streak.count>=2?'🔥 '+state.streak.count+'日連続':'今日も1問から'}</span>
         </div>
-        <div class="progress-line" style="margin:0 0 4px"><i style="width:${lvlInfo(state.xp).cur/lvlInfo(state.xp).need*100}%"></i></div>
-        <div style="font-size:10px;color:var(--sub);font-weight:700;text-align:right">あと ${lvlInfo(state.xp).need-lvlInfo(state.xp).cur} XP でレベルアップ</div>
+        <div class="progress-line" style="margin:0 0 4px"><i style="width:${lvlInfo(state.xp).max?100:lvlInfo(state.xp).cur/lvlInfo(state.xp).need*100}%"></i></div>
+        <div style="font-size:10px;color:var(--sub);font-weight:700;text-align:right">${lvlInfo(state.xp).max?'最高レベル到達！ 累計 '+state.xp.toLocaleString()+' XP':'あと '+(lvlInfo(state.xp).need-lvlInfo(state.xp).cur).toLocaleString()+' XP でレベルアップ'}</div>
       </div>
     </div>
     <button class="btn btn-ghost" style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center" onclick="renderTickets()"><span>🎟 ごほうび券</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${ticketsLeft()}枚</span></button>
-    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderZukan()"><span>📖 ことばの図鑑</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${state.cards.length}/${CARDS.length}</span></button>
+    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderZukan()"><span>📖 ことばの図鑑</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${cardsNormal().filter(c=>state.cards.includes(c.id)).length}/${cardsNormal().length}</span></button>
     <div class="ring-card" style="display:block;padding:16px 18px">
       <h2 style="font-size:13px;font-weight:900;margin-bottom:10px">📊 レベル別の記録</h2>
       ${LEVELS.filter(l=>l.id!=='my').map(l=>{
@@ -592,11 +774,14 @@ function renderHome(){
       <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
     </div>
     <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
-    <div class="section-label" style="margin-top:16px">🏅 実績（${state.ach.length}/${ACH.length}）</div>
+    <div class="section-label" style="margin-top:16px">🏅 実績（${ACH.filter(a=>state.ach.includes(a.id)).length}/${ACH.length}）</div>
     <div class="ach-grid">
       ${ACH.map(a=>{const got=state.ach.includes(a.id);
         return `<div class="achb ${got?'got':''}"><div class="an">${got?'🏅':'🔒'} ${a.name}</div><div class="ad">${a.desc}</div></div>`;}).join('')}
     </div>
+    ${(()=>{const f=ACH_SECRET.filter(a=>state.ach.includes(a.id));
+      return f.length?`<div class="section-label">🕵️ 隠し実績（${f.length}）</div><div class="ach-grid">${
+        f.map(a=>`<div class="achb got" style="border-color:#7B6BD9;background:#F4F2FF"><div class="an">🕵️ ${a.name}</div><div class="ad">${a.desc}</div></div>`).join('')}</div>`:'';})()}
     <div class="manage-btn" onclick="renderManage()">
       <div class="ic">➕</div>
       <div><h3>単語を増やす・編集する</h3><p>教科書に合わせて登録／Unitグループに追加</p></div>
@@ -642,7 +827,7 @@ function renderFlash(){
 function fcFlip(){ fc.flipped=!fc.flipped; renderFlash(); }
 function fcDir(d){ fc.dir=d; fc.flipped=false; renderFlash(); }
 function fcMove(n){ fc.i=(fc.i+n+fc.list.length)%fc.list.length; fc.flipped=false; renderFlash(); }
-function fcLearn(v){
+function fcLearn(v){ markMode('flash');
   const c=fc.list[fc.i],real=state.words.find(x=>x.id===c.id);
   if(real){real.learned=v;c.learned=v;} save();
   if(v){addXp(3);touchStreak();}
@@ -654,6 +839,8 @@ function fcLearn(v){
 /* クイズ */
 let qz={list:[],i:0,score:0,miss:[],dir:'en',answered:false};
 function startQuiz(){ const list=wordsOf(currentGroup); if(list.length<4){toast('クイズは4語以上で遊べるよ');return;} const qn=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  markMode('quiz');markLevel(curLevel);
+  if(curLevel==='p1'&&lvlInfo(state.xp).level<=3)unlock('fearless');
   qz={list:shuffle(list).slice(0,qn),i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0}; renderQuiz(); }
 function renderQuiz(){
   if(qz.i>=qz.list.length) return renderQuizResult();
@@ -681,6 +868,7 @@ function answerQuiz(picked,correctId){
     else if(id===picked)b.classList.add('wrong'); else b.classList.add('dim');
     b.onclick=null;
   });
+  bumpQ();if(real&&real.wrong>state.stat.maxWrong)state.stat.maxWrong=real.wrong;
   if(ok){qz.score++;qz.combo++;qz.maxCombo=Math.max(qz.maxCombo,qz.combo);
     if(qz.combo>state.maxCombo){state.maxCombo=qz.combo;}
     if(real){real.correct++;if(real.correct>=3)real.learned=true;}
@@ -692,6 +880,8 @@ function answerQuiz(picked,correctId){
 function renderQuizResult(){
   const total=qz.list.length,rate=Math.round(qz.score/total*100);
   const rk=rankOf(rate);unlock('first');
+  if(qz.score===total&&total>=10)unlock('perfect');
+  if(qz.score===total&&total>=20)unlock('perfect20');
   const bk='quiz';const isBest=qz.score>(state.best[bk]||0);
   if(isBest){state.best[bk]=qz.score;save();}
   let emoji='💪',msg='その調子！';
@@ -718,6 +908,7 @@ let ta={pool:[],i:0,score:0,t:60,timer:null,answered:false,combo:0};
 function startTA(){
   const list=wordsOf(currentGroup);
   if(list.length<4){toast('タイムアタックは4語以上必要です');return;}
+  markMode('ta');markLevel(curLevel);
   ta={pool:shuffle(list),i:0,score:0,t:60,timer:null,answered:false,combo:0};
   renderTA();
   ta.timer=setInterval(()=>{ta.t--;const el=$('taTimer');
@@ -773,6 +964,7 @@ function finishTA(){
 let sp={list:[],i:0,score:0,miss:[],answered:false};
 function startSpell(){ const list=wordsOf(currentGroup); if(!list.length){toast('このグループに単語がありません');return;}
   const n=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  markMode('spell');markLevel(curLevel);
   sp={list:shuffle(list).slice(0,n),i:0,score:0,miss:[],answered:false,hint:0,retry:false,combo:0,maxCombo:0}; renderSpell(); }
 function renderSpell(){
   if(sp.i>=sp.list.length) return renderSpellResult();
@@ -939,6 +1131,7 @@ function startLs(){
   const list=wordsOf(currentGroup);
   if(list.length<4){toast('リスニングは4語以上必要です');return;}
   const n=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  markMode('listen');markLevel(curLevel);
   ls={list:shuffle(list).slice(0,n),i:0,score:0,miss:[],mode:ls.mode||'choice',answered:false,combo:0,maxCombo:0,revealed:false};
   renderLs();
 }
@@ -1172,7 +1365,7 @@ function obDone(){
   const v=$('obTicket').value.trim();
   if(v)state.ticketLabel=v;
   state.onboarded=true;save();
-  toast('準備完了！今日も一歩 🎉');renderHome();
+  toast('準備完了 🎉 まずは使い方ガイドをどうぞ');renderHelp();
 }
 
 /* 起動（全ての定義の後で実行する） */
