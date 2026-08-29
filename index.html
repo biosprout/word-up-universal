@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WORD UP! 英単語トレーニング</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F4F4FB;--panel:#FFFFFF;--primary:#3D2FB8;--primary-light:#6B5CE7;
+    --accent:#FF8A3D;--success:#18C29C;--danger:#FF5A6E;
+    --text:#1A1A2E;--sub:#7A7A94;--border:#E9E9F4;
+    --shadow:0 8px 28px rgba(61,47,184,.10);--shadow-sm:0 4px 14px rgba(61,47,184,.08);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Noto Sans JP',system-ui,sans-serif;color:var(--text);
+    background:linear-gradient(160deg,#EEEcFB 0%,#F4F4FB 40%,#F0F6FB 100%);
+    min-height:100dvh;display:flex;justify-content:center;}
+  .app{width:100%;max-width:480px;min-height:100dvh;background:var(--bg);
+    display:flex;flex-direction:column;position:relative;box-shadow:0 0 50px rgba(61,47,184,.06);}
+  .topbar{padding:18px 20px 14px;display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:10;background:linear-gradient(180deg,var(--bg) 70%,rgba(244,244,251,0));}
+  .brand{display:flex;flex-direction:column;line-height:1.05}
+  .brand .logo{font-family:'Poppins';font-weight:800;font-size:24px;letter-spacing:-.5px;color:var(--primary)}
+  .brand .logo span{color:var(--accent)}
+  .brand .sub{font-size:11px;color:var(--sub);font-weight:500;margin-top:2px}
+  .grp-pill{background:var(--panel);border:1px solid var(--border);border-radius:999px;
+    padding:7px 14px;font-size:12px;font-weight:700;color:var(--primary);box-shadow:var(--shadow-sm);
+    max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .screen{flex:1;overflow-y:auto;padding:6px 20px 40px;-webkit-overflow-scrolling:touch}
+  .hide{display:none!important}
+  .ring-card{background:var(--panel);border-radius:24px;padding:24px;box-shadow:var(--shadow);
+    display:flex;align-items:center;gap:20px;margin-bottom:18px;}
+  .ring{position:relative;width:104px;height:104px;flex:0 0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .pct{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .pct b{font-family:'Poppins';font-size:26px;font-weight:800;color:var(--primary);line-height:1}
+  .ring .pct small{font-size:10px;color:var(--sub);font-weight:600;margin-top:2px}
+  .ring-info h2{font-size:15px;font-weight:900;margin-bottom:8px}
+  .ring-info .stat{display:flex;gap:14px}
+  .ring-info .stat div{font-size:11px;color:var(--sub);font-weight:600}
+  .ring-info .stat b{display:block;font-family:'Poppins';font-size:20px;color:var(--text);font-weight:700}
+  .section-label{font-size:12px;font-weight:800;color:var(--sub);margin:6px 2px 10px;letter-spacing:.3px}
+  .grp-scroll{display:flex;gap:9px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}
+  .grp-scroll::-webkit-scrollbar{display:none}
+  .grp-chip{flex:0 0 auto;background:var(--panel);border:1.5px solid var(--border);border-radius:14px;
+    padding:10px 15px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;transition:.15s;white-space:nowrap;}
+  .grp-chip small{display:block;font-size:10px;color:var(--sub);font-weight:600;margin-top:1px}
+  .grp-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:var(--shadow-sm)}
+  .grp-chip.on small{color:rgba(255,255,255,.8)}
+  .lv-chip{flex:0 0 auto;background:var(--card);border:1.5px solid var(--border);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;color:var(--text);cursor:pointer;transition:.15s}
+  .lv-chip.on{background:var(--accent);border-color:var(--accent);color:#2A1D00}
+  .grp-chip.weak{border-color:var(--danger);color:var(--danger)}
+  .grp-chip.weak.on{background:var(--danger);border-color:var(--danger);color:#fff}
+  .grp-chip.weak.on small{color:rgba(255,255,255,.85)}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+  .mode{background:var(--panel);border-radius:20px;padding:20px 16px;cursor:pointer;
+    box-shadow:var(--shadow-sm);border:1.5px solid transparent;transition:.15s;display:flex;flex-direction:column;gap:8px;}
+  .mode:active{transform:scale(.97)}
+  .mode .ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+  .mode h3{font-size:15px;font-weight:900}
+  .mode p{font-size:11px;color:var(--sub);font-weight:500;line-height:1.4}
+  .mode.flash .ic{background:#EAE7FB}
+  .mode.quiz .ic{background:#FFE9DB}
+  .mode.game .ic{background:#DEF7F0}
+  .mode.spell .ic{background:#E3F0FF}
+  .mode.listen .ic{background:#FFF3D6}
+  .ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ob-item{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
+  .ob-item:active{transform:scale(.97);border-color:var(--primary)}
+    .lvstat{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .lvstat:last-of-type{margin-bottom:0}
+  .lvstat .ln{font-size:10px;font-weight:800;width:64px;flex:0 0 auto}
+  .lvstat .lb{flex:1;height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+  .lvstat .lb i{display:block;height:100%;border-radius:99px}
+  .lvstat .lnum{font-family:'Poppins';font-size:10px;font-weight:700;color:var(--sub);width:62px;text-align:right;flex:0 0 auto}
+  .lvstat .lrate{font-family:'Poppins';font-size:10px;font-weight:800;width:34px;text-align:right;flex:0 0 auto;color:var(--text)}
+  .ln.lvc-m1,.lb i.lvc-m1{color:#3BB273;background:#3BB273}
+  .ln.lvc-m2,.lb i.lvc-m2{color:#2E9E8F;background:#2E9E8F}
+  .ln.lvc-m3,.lb i.lvc-m3{color:#3B82C4;background:#3B82C4}
+  .ln.lvc-p2,.lb i.lvc-p2{color:#7B6BD9;background:#7B6BD9}
+  .ln.lvc-e2,.lb i.lvc-e2{color:#C9702F;background:#C9702F}
+  .ln.lvc-p1,.lb i.lvc-p1{color:#C4456B;background:#C4456B}
+  .ln.lvc-m1,.ln.lvc-m2,.ln.lvc-m3,.ln.lvc-p2,.ln.lvc-e2,.ln.lvc-p1{background:none}
+  .zkr{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;opacity:.5}
+  .zkr.got{opacity:1}
+  .zke{font-size:24px;flex:0 0 auto}
+  .zkb{flex:1}
+  .zkn{font-size:13px;font-weight:900;font-family:'Poppins',sans-serif}
+  .zkd{font-size:11px;color:var(--sub);font-weight:600;line-height:1.6;margin-top:4px}
+  .zktag{font-size:8px;padding:2px 7px;border-radius:6px;font-weight:800;vertical-align:2px;font-family:'Noto Sans JP'}
+  .zktag.N{background:#EEF1F4;color:#8A94A0}
+  .zktag.R{background:#E3F0FF;color:#2E7BC4}
+  .zktag.SR{background:#FFF1DC;color:#C9702F}
+  .ach-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .achb{background:var(--panel);border:1.5px solid var(--border);border-radius:12px;padding:9px 8px;opacity:.55}
+  .achb.got{opacity:1;border-color:var(--accent);background:#FFF8EE}
+  .achb .an{font-size:10px;font-weight:800;line-height:1.3}
+  .achb .ad{font-size:8px;color:var(--sub);font-weight:600;margin-top:3px;line-height:1.3}
+  .combo-tag{font-family:'Poppins';font-weight:800;font-size:13px;color:var(--accent)}
+  .manage-btn{display:flex;align-items:center;gap:12px;background:var(--panel);border:1.5px solid var(--border);
+    border-radius:18px;padding:16px 18px;margin-top:12px;cursor:pointer;box-shadow:var(--shadow-sm);transition:.15s}
+  .manage-btn:active{transform:scale(.98)}
+  .manage-btn .ic{width:40px;height:40px;border-radius:12px;background:#FDE4E8;display:flex;align-items:center;justify-content:center;font-size:20px;flex:0 0 auto}
+  .manage-btn h3{font-size:14px;font-weight:900}
+  .manage-btn p{font-size:11px;color:var(--sub);font-weight:500}
+  .btn{border:none;border-radius:14px;font-family:inherit;font-weight:800;font-size:15px;padding:15px;cursor:pointer;transition:.15s;width:100%;}
+  .btn:active{transform:scale(.98)}
+  .btn-primary{background:var(--primary);color:#fff;box-shadow:var(--shadow-sm)}
+  .btn-ghost{background:var(--panel);color:var(--primary);border:1.5px solid var(--border)}
+  .btn-accent{background:var(--accent);color:#fff}
+  .back{display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--sub);
+    font-weight:700;font-size:14px;cursor:pointer;padding:6px 2px;margin-bottom:8px;font-family:inherit;}
+  .mode-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .mode-head h2{font-size:18px;font-weight:900}
+  .progress-line{height:6px;background:var(--border);border-radius:999px;overflow:hidden;margin-bottom:18px}
+  .progress-line i{display:block;height:100%;background:var(--primary);border-radius:999px;transition:width .3s}
+  .flash-wrap{display:flex;flex-direction:column;align-items:center;gap:18px}
+  .card{width:100%;aspect-ratio:3/2;background:var(--panel);border-radius:24px;box-shadow:var(--shadow);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;cursor:pointer;
+    position:relative;padding:20px;text-align:center;transition:.2s;}
+  .card:active{transform:scale(.98)}
+  .card .tag{position:absolute;top:14px;left:16px;font-size:10px;font-weight:800;color:var(--sub);letter-spacing:.5px}
+  .card .tap-hint{position:absolute;bottom:14px;font-size:11px;color:var(--sub);font-weight:600}
+  .card .en{font-family:'Poppins';font-size:40px;font-weight:700;color:var(--primary);word-break:break-word}
+  .card .ja{font-size:28px;font-weight:700;color:var(--text)}
+  .card.learned-mark::after{content:'✓ 覚えた';position:absolute;top:13px;right:14px;font-size:10px;font-weight:800;color:var(--success)}
+  .flash-nav{display:flex;gap:10px;width:100%}
+  .flash-nav .btn{flex:1}
+  .flash-mark{display:flex;gap:10px;width:100%}
+  .counter{font-family:'Poppins';font-weight:700;color:var(--sub);font-size:14px}
+  .toggle-row{display:flex;gap:8px;align-items:center;justify-content:center;width:100%}
+  .seg{display:inline-flex;background:var(--panel);border:1.5px solid var(--border);border-radius:12px;padding:3px;gap:2px}
+  .seg button{border:none;background:none;font-family:inherit;font-weight:700;font-size:12px;color:var(--sub);padding:7px 12px;border-radius:9px;cursor:pointer}
+  .seg button.on{background:var(--primary);color:#fff}
+  .q-card{background:var(--panel);border-radius:22px;padding:30px 20px;box-shadow:var(--shadow);text-align:center;margin-bottom:16px}
+  .q-card .qlabel{font-size:11px;font-weight:800;color:var(--sub);letter-spacing:.5px;margin-bottom:12px}
+  .q-card .qword{font-family:'Poppins';font-size:36px;font-weight:700;color:var(--primary);word-break:break-word}
+  .q-card .qword.ja{font-family:'Noto Sans JP';color:var(--text);font-size:28px}
+  .choices{display:grid;gap:10px}
+  .choice{background:var(--panel);border:1.5px solid var(--border);border-radius:15px;padding:16px;
+    font-family:inherit;font-size:16px;font-weight:700;color:var(--text);cursor:pointer;text-align:left;transition:.12s;}
+  .choice:active{transform:scale(.99)}
+  .choice.correct{background:var(--success);border-color:var(--success);color:#fff}
+  .choice.wrong{background:var(--danger);border-color:var(--danger);color:#fff}
+  .choice.dim{opacity:.45}
+  .quiz-score{font-family:'Poppins';font-weight:700;color:var(--sub);font-size:14px}
+  .result{text-align:center;padding:30px 10px}
+  .result .big{font-family:'Poppins';font-size:60px;font-weight:800;color:var(--primary);line-height:1}
+  .result .emoji{font-size:54px;margin-bottom:6px}
+  .result h2{font-size:20px;font-weight:900;margin:10px 0 4px}
+  .result p{color:var(--sub);font-weight:600;font-size:13px;margin-bottom:20px}
+  .miss-list{text-align:left;background:var(--panel);border-radius:16px;padding:6px 4px;box-shadow:var(--shadow-sm);margin-bottom:18px;max-height:220px;overflow-y:auto}
+  .miss-list .row{display:flex;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border);font-size:14px}
+  .miss-list .row:last-child{border:none}
+  .miss-list .row b{font-family:'Poppins';color:var(--primary);font-weight:700}
+  .miss-list .row span{color:var(--sub);font-weight:600}
+  .game-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;font-family:'Poppins';font-weight:700}
+  .game-top .timer{font-size:22px;color:var(--primary)}
+  .game-top .left{font-size:13px;color:var(--sub)}
+  .match-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .tile{background:var(--panel);border:2px solid var(--border);border-radius:14px;padding:16px 8px;min-height:62px;
+    display:flex;align-items:center;justify-content:center;text-align:center;cursor:pointer;font-weight:700;font-size:15px;transition:.12s;line-height:1.2;}
+  .tile.en{font-family:'Poppins';color:var(--primary)}
+  .tile:active{transform:scale(.96)}
+  .tile.sel{border-color:var(--accent);background:#FFF4EC}
+  .tile.done{opacity:0;pointer-events:none;transform:scale(.8)}
+  .tile.miss{border-color:var(--danger);background:#FFE9EC;animation:shake .3s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .add-box{background:var(--panel);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+  .field{margin-bottom:10px}
+  .field label{display:block;font-size:11px;font-weight:800;color:var(--sub);margin-bottom:5px}
+  .field input,.field select,.field textarea{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:11px 13px;
+    font-family:inherit;font-size:14px;color:var(--text);background:#FCFCFE;}
+  .field textarea{resize:vertical;min-height:90px;line-height:1.5}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary-light)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .tabs{display:flex;gap:6px;background:var(--panel);border:1.5px solid var(--border);border-radius:13px;padding:4px;margin-bottom:14px}
+  .tabs button{flex:1;border:none;background:none;font-family:inherit;font-weight:800;font-size:13px;color:var(--sub);padding:9px;border-radius:9px;cursor:pointer}
+  .tabs button.on{background:var(--primary);color:#fff}
+  .word-list{display:flex;flex-direction:column;gap:8px}
+  .word-row{background:var(--panel);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .word-row .w-en{font-family:'Poppins';font-weight:700;color:var(--primary);font-size:15px}
+  .word-row .w-ja{font-size:13px;color:var(--text);font-weight:600}
+  .word-row .w-grp{font-size:10px;color:var(--sub);font-weight:700;margin-top:2px}
+  .word-row .ops{display:flex;gap:6px;flex:0 0 auto}
+  .iconbtn{border:none;background:#F2F2FA;border-radius:9px;width:32px;height:32px;cursor:pointer;font-size:14px;color:var(--sub)}
+  .iconbtn.del:active{background:var(--danger);color:#fff}
+  .empty{text-align:center;color:var(--sub);font-weight:600;font-size:13px;padding:40px 20px;line-height:1.6}
+  .help{font-size:11px;color:var(--sub);line-height:1.6;margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;
+    padding:12px 22px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.2);}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .pop{position:fixed;inset:0;pointer-events:none;z-index:40;display:flex;align-items:center;justify-content:center}
+  .pop span{position:absolute;font-size:24px;animation:fly .8s ease-out forwards}
+  @keyframes fly{0%{opacity:1;transform:translate(0,0) scale(.5)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.2)}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="brand"><div class="logo">WORD <span>UP!</span></div><div class="sub">中学〜準1級レベル / 5134語</div></div>
+    <div class="grp-pill" id="grpPill">全部</div>
+  </div>
+  <div class="screen" id="screen"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE_KEY='wordup_universal_v1';
+let mem=null;
+const DATA_DIR='data/';
+function wid(g,en){return g+'|'+en.toLowerCase();}
+function pkey(en){return en.toLowerCase();}
+function w(en,ja,g){return {id:wid(g,en),en,ja,groupId:g,learned:false,correct:0,wrong:0,own:true};}
+let META=null;
+const LOADED={};
+
+
+const LEVELS=[];
+
+function load(){
+  const base={xp:0,maxCombo:0,ach:[],cards:[],best:{},streak:{day:'',count:0},
+    progress:{},myWords:[],myGroups:[],words:[],groups:[],level:'m1',onboarded:false};
+  try{
+    const raw=localStorage.getItem(STORE_KEY);
+    if(raw){
+      const st=JSON.parse(raw);
+      // 旧形式（単語まるごと保存）からの移行
+      if(Array.isArray(st.words)&&st.words.length&&!st.progress){
+        st.progress={};
+        st.myWords=[];
+        st.words.forEach(x=>{
+          if(x.own){st.myWords.push(x);return;}
+          if(x.correct||x.wrong||x.learned){
+            const k=x.en.toLowerCase(),v=[x.correct|0,x.wrong|0,x.learned?1:0],o=st.progress[k];
+            st.progress[k]=o?[Math.max(o[0],v[0]),Math.max(o[1],v[1]),Math.max(o[2],v[2])]:v;
+          }
+        });
+        st.myGroups=(st.groups||[]).filter(g=>g.lv==='my'&&g.id!=='my1'&&g.id!=='my2');
+      }
+      return Object.assign(base,st,{words:[],groups:[]});
+    }
+  }catch(e){}
+  return base;
+}
+function save(){
+  try{
+    const pr={};
+    state.words.forEach(x=>{
+      if(x.own)return;
+      const k=pkey(x.en),v=[x.correct|0,x.wrong|0,x.learned?1:0],o=pr[k];
+      if(!v[0]&&!v[1]&&!v[2])return;
+      pr[k]=o?[Math.max(o[0],v[0]),Math.max(o[1],v[1]),Math.max(o[2],v[2])]:v;
+    });
+    state.progress=Object.assign({},state.progress,pr);
+    state.myWords=state.words.filter(x=>x.own);
+    const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,best:state.best,
+      streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
+      onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups};
+    localStorage.setItem(STORE_KEY,JSON.stringify(out));
+  }catch(e){ mem=state; }
+}
+let state=load();
+let currentGroup='all';
+let quizCount=10;
+if(!state.level)state.level='m1';
+let curLevel=state.level;
+function applyProgress(x){
+  const p=state.progress[pkey(x.en)];
+  if(p){x.correct=p[0]|0;x.wrong=p[1]|0;x.learned=!!p[2];}
+  return x;
+}
+async function ensureLevel(lv){
+  if(lv==='all'){ for(const l of META.levels) await ensureLevel(l.id); return; }
+  if(lv==='my'||LOADED[lv])return;
+  const meta=META.levels.find(l=>l.id===lv);
+  if(!meta){LOADED[lv]=true;return;}
+  const doc=await (await fetch(DATA_DIR+meta.file,{cache:'no-cache'})).json();
+  doc.groups.forEach(g=>{
+    state.groups.push({id:g.id,name:g.name,lv:lv});
+    g.w.forEach(([en,ja])=>state.words.push(applyProgress(
+      {id:wid(g.id,en),en,ja,groupId:g.id,learned:false,correct:0,wrong:0})));
+  });
+  LOADED[lv]=true;
+}
+function bootGroups(){
+  state.groups.push({id:'my1',name:'マイ単語帳 1',lv:'my'});
+  state.groups.push({id:'my2',name:'マイ単語帳 2',lv:'my'});
+  (state.myGroups||[]).forEach(g=>state.groups.push(g));
+  (state.myWords||[]).forEach(x=>state.words.push(x));
+}
+function loadingScreen(msg){
+  screen.innerHTML=`<div class="ring-card" style="flex-direction:column;text-align:center;gap:10px;margin-top:40px">
+    <div style="font-size:34px">📚</div>
+    <div style="font-weight:800;font-size:15px">${msg||'単語データを読み込み中...'}</div>
+    <div class="progress-line" style="width:100%"><i style="width:60%"></i></div></div>`;
+}
+async function boot(){
+  loadingScreen();
+  try{
+    META=await (await fetch(DATA_DIR+'index.json',{cache:'no-cache'})).json();
+  }catch(e){
+    screen.innerHTML=`<div class="ring-card" style="flex-direction:column;text-align:center;gap:10px;margin-top:40px">
+      <div style="font-size:34px">⚠️</div><div style="font-weight:800">単語データを読み込めませんでした</div>
+      <p class="help">このアプリは data フォルダと同じ場所に置いて、Webサーバー（GitHub Pages など）経由で開いてください。ファイルを直接ダブルクリックして開くと読み込めません。</p></div>`;
+    return;
+  }
+  LEVELS.length=0;
+  META.levels.forEach(l=>LEVELS.push({id:l.id,name:l.name}));
+  LEVELS.push({id:'my',name:'マイ単語帳'});
+  bootGroups();
+  if(!META.levels.find(l=>l.id===curLevel))curLevel=state.level=META.levels[0].id;
+  await ensureLevel(curLevel);
+  if(state.onboarded)renderHome(); else renderOnboard();
+  // 残りは背景で読み込む
+  for(const l of META.levels){ if(!LOADED[l.id]){ try{await ensureLevel(l.id);}catch(e){} } }
+  if(state.onboarded&&document.querySelector('.ring-card'))renderHome();
+}
+boot();
+function renderZukan(){
+  const have=new Set(state.cards);
+  const sec=(r,label)=>{
+    const cs=CARDS.filter(c=>c.r===r);
+    return `<div class="section-label">${label}（${cs.filter(c=>have.has(c.id)).length}/${cs.length}）</div>`+
+      cs.map(c=>have.has(c.id)
+        ?`<div class="zkr got"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)} <span class="zktag ${c.r}">${c.r==='SR'?'超レア':c.r==='R'?'レア':'ふつう'}</span></div><div class="zkd">${esc(c.d)}</div></div></div>`
+        :`<div class="zkr"><span class="zke">🔒</span><div class="zkb"><div class="zkn" style="color:var(--sub)">？？？</div><div class="zkd">レベルアップ・実績解除・5日連続学習で手に入る</div></div></div>`).join('');
+  };
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>📖 ことばの図鑑</h2><span class="quiz-score">${state.cards.length}/${CARDS.length}</span></div>
+    ${state.cards.length>=CARDS.length?'<div class="ring-card" style="justify-content:center"><b style="color:var(--accent)">🏆 全種コンプリート！</b></div>':''}
+    <p class="help" style="margin-bottom:10px">英単語の語源や由来の豆知識を集める図鑑。覚えた単語の背景を知ると記憶に残りやすくなる。</p>
+    ${sec('SR','⭐ 超レア')}
+    ${sec('R','🔹 レア')}
+    ${sec('N','・ ふつう')}`;
+}
+async function setLevel(l){
+  if(l!=='my'&&l!=='all'&&!LOADED[l]){loadingScreen(l+' のデータを読み込み中...');await ensureLevel(l);}
+  if(l==='all'){loadingScreen();await ensureLevel('all');}
+  curLevel=l; state.level=l; currentGroup='all'; save(); renderHome();
+}
+if(state.xp==null)state.xp=0;
+if(state.maxCombo==null)state.maxCombo=0;
+if(!state.best)state.best={};
+if(!state.ach)state.ach=[];
+if(!state.streak)state.streak={day:'',count:0};
+
+const ACH=[
+ {id:'first',name:'はじめの一歩',desc:'クイズを1回クリア'},
+ {id:'combo5',name:'コンボスター',desc:'5コンボ達成'},
+ {id:'combo10',name:'コンボマスター',desc:'10コンボ達成'},
+ {id:'combo20',name:'無双',desc:'20コンボ達成'},
+ {id:'learn50',name:'50語ハンター',desc:'覚えた単語 50語'},
+ {id:'learn150',name:'150語コレクター',desc:'覚えた単語 150語'},
+ {id:'learn300',name:'300語レジェンド',desc:'覚えた単語 300語'},
+ {id:'learn600',name:'600語マスター',desc:'覚えた単語 600語'},
+ {id:'learn1000',name:'1000語の頂',desc:'覚えた単語 1000語'},
+ {id:'learn2000',name:'2000語の境地',desc:'覚えた単語 2000語'},
+ {id:'streak3',name:'3日連続',desc:'3日連続で学習'},
+ {id:'streak7',name:'週間パーフェクト',desc:'7日連続で学習'},
+ {id:'streak14',name:'2週間の習慣',desc:'14日連続で学習'},
+ {id:'streak30',name:'鉄の意志',desc:'30日連続で学習'},
+ {id:'lv5',name:'Lv.5 到達',desc:'レベル5になる'},
+ {id:'lv10',name:'Lv.10 到達',desc:'レベル10になる'},
+ {id:'lv20',name:'Lv.20 到達',desc:'レベル20になる'},
+ {id:'ta15',name:'スピードキング',desc:'タイムアタック15問'},
+ {id:'ta25',name:'音速の語彙',desc:'タイムアタック25問'},
+ {id:'spell10',name:'つづりの達人',desc:'書いて覚えるで10問正解'},
+ {id:'listen10',name:'耳が育った',desc:'リスニングで10問正解'},
+ {id:'dict10',name:'ディクテーター',desc:'聞いて書くで10問正解'},
+ {id:'perfect',name:'完全制覇',desc:'10問クイズで全問正解'},
+ {id:'lvclear',name:'レベル制覇',desc:'1つのレベルの単語を全部覚える'},
+];
+const TITLES=[
+ {e:'🌱',n:'First Word',j:'はじめの一語'},
+ {e:'🔤',n:'Word Collector',j:'言葉あつめ'},
+ {e:'🧩',n:'Phrase Hunter',j:'語句の狩人'},
+ {e:'📝',n:'Sentence Builder',j:'文を組む者'},
+ {e:'📖',n:'Story Reader',j:'物語の読み手'},
+ {e:'💬',n:'Conversation Rider',j:'会話の乗り手'},
+ {e:'✒️',n:'Essay Writer',j:'書き手'},
+ {e:'🎤',n:'Debate Speaker',j:'論じる者'},
+ {e:'📰',n:'News Reader',j:'世界を読む者'},
+ {e:'🌊',n:'Novel Diver',j:'物語に潜る者'},
+ {e:'🏛',n:'Word Master',j:'語彙の達人'},
+ {e:'🧠',n:'Bilingual Mind',j:'二言語の頭脳'},
+ {e:'🌐',n:'Global Communicator',j:'世界と話す者'},
+ {e:'🗝',n:'Language Sage',j:'言葉の賢者'},
+ {e:'👑',n:'Word Legend',j:'言葉の伝説'},
+];
+function titleOf(l){return TITLES[Math.min(l,TITLES.length)-1];}
+const CARDS=[
+ {id:'sandwich',r:'N',e:'🥪',n:'sandwich',d:'18世紀のサンドウィッチ伯爵の名から。カード遊びの手を止めずに食べられるようパンで挟んだ、という逸話が広く伝わる'},
+ {id:'goodbye',r:'N',e:'👋',n:'goodbye',d:'God be with ye（神があなたと共にありますように）が縮まった形。別れのあいさつは元は祈りの言葉だった'},
+ {id:'pen',r:'N',e:'🖊',n:'pen',d:'ラテン語 penna（羽根）から。羽根ペンの時代の名前がそのまま残っている'},
+ {id:'window',r:'N',e:'🪟',n:'window',d:'古ノルド語 vindauga（風の目）から。ガラスのない時代、窓は風の通る穴だった'},
+ {id:'daisy',r:'N',e:'🌼',n:'daisy',d:"day's eye（昼の目）が語源。朝に開いて夕方に閉じる花の性質から"},
+ {id:'alphabet',r:'N',e:'🔠',n:'alphabet',d:'ギリシャ文字の最初の2字 α（アルファ）と β（ベータ）をつなげた語'},
+ {id:'muscle',r:'N',e:'💪',n:'muscle',d:'ラテン語 musculus（小さなネズミ）から。力こぶの動きがネズミに見えたとされる'},
+ {id:'companion',r:'N',e:'🤝',n:'companion',d:'com（共に）+ panis（パン）。パンを分け合う相手が「仲間」になった'},
+ {id:'breakfast',r:'N',e:'🍳',n:'breakfast',d:'break（破る）+ fast（断食）。夜の絶食を破る食事という意味'},
+ {id:'holiday',r:'N',e:'🎌',n:'holiday',d:'holy day（聖なる日）から。宗教的な祝日が休日の起源'},
+ {id:'nightmare',r:'N',e:'😱',n:'nightmare',d:'この mare は古英語で「夜に人を押さえつける悪霊」。馬（mare）とは無関係'},
+ {id:'november',r:'N',e:'📅',n:'November',d:'ラテン語 novem（9）から。古代ローマ暦では9番目の月だった名残で、2つずれている'},
+ {id:'salary',r:'R',e:'🧂',n:'salary',d:'ラテン語 salarium（塩の代金）から。ローマ兵に塩を買う手当が支給されたことに由来するとされる'},
+ {id:'disaster',r:'R',e:'💥',n:'disaster',d:'dis（悪い）+ astro（星）。星回りが悪いことが災難の語源。占星術が生きていた時代の言葉'},
+ {id:'quarantine',r:'R',e:'🚢',n:'quarantine',d:'イタリア語 quaranta（40）から。ペスト流行時、船を40日間停泊させた検疫制度が起源'},
+ {id:'vaccine',r:'R',e:'💉',n:'vaccine',d:'ラテン語 vacca（雌牛）から。ジェンナーが牛痘を使って天然痘を予防したことに由来'},
+ {id:'galaxy',r:'R',e:'🌌',n:'galaxy',d:'ギリシャ語 gala（乳）から。天の川を「乳の道」と見た神話に由来する'},
+ {id:'panic',r:'R',e:'😨',n:'panic',d:'ギリシャ神話の牧神パンから。パンが起こすとされた突然の恐怖が語源'},
+ {id:'cereal',r:'R',e:'🌾',n:'cereal',d:'ローマ神話の農業の女神ケレス（Ceres）から。穀物を司る神の名がそのまま食品名になった'},
+ {id:'january',r:'R',e:'🚪',n:'January',d:'ローマ神話の門の神ヤヌス（Janus）から。前と後ろに顔を持ち、年の変わり目を見つめる神'},
+ {id:'bank',r:'R',e:'🏦',n:'bank / bankrupt',d:'イタリア語 banca（両替商の台）から。台を壊されて廃業することが bankrupt（破産）になった'},
+ {id:'clue',r:'R',e:'🧶',n:'clue',d:'元の形は clew（糸玉）。迷宮のミノタウロス退治で糸をたどった神話から「手がかり」の意味へ'},
+ {id:'tragedy',r:'R',e:'🐐',n:'tragedy',d:'ギリシャ語 tragos（ヤギ）+ oide（歌）。語源には諸説あるが、ヤギ説が有力とされる'},
+ {id:'shampoo',r:'R',e:'🧴',n:'shampoo',d:'ヒンディー語 chāmpo（押す、もむ）から。インドの頭部マッサージの習慣が語とともに伝わった'},
+ {id:'robot',r:'SR',e:'🤖',n:'robot',d:'チェコ語 robota（強制労働）から。1920年のチャペックの戯曲『R.U.R.』で初めて使われた造語'},
+ {id:'checkmate',r:'SR',e:'♟',n:'checkmate',d:'ペルシャ語「シャー・マート（王は行き場を失った）」が語源。チェスの起源をたどれる言葉'},
+ {id:'assassin',r:'SR',e:'🗡',n:'assassin',d:'アラビア語 hashshashin から。十字軍時代の暗殺教団の呼び名がヨーロッパに伝わった'},
+ {id:'boycott',r:'SR',e:'🚫',n:'boycott',d:'19世紀アイルランドの土地管理人チャールズ・ボイコットの名から。地域ぐるみで彼と取引を拒んだ事件が語になった'},
+ {id:'silhouette',r:'SR',e:'👤',n:'silhouette',d:'フランスの財務大臣エティエンヌ・ド・シルエットの名から。極端な倹約策を皮肉って安価な影絵にその名がついた'},
+ {id:'ok',r:'SR',e:'👌',n:'OK',d:'1839年ボストンの新聞で流行した綴り遊び oll korrect（all correct）の略が起源という説が最も有力'},
+];
+function grantCard(){
+  const have=new Set(state.cards||[]);
+  const pool=CARDS.filter(c=>!have.has(c.id));
+  if(!pool.length)return;
+  const W={N:6,R:3,SR:1};
+  let tot=0;pool.forEach(c=>tot+=W[c.r]);
+  let x=Math.random()*tot,pick=pool[0];
+  for(const c of pool){x-=W[c.r];if(x<=0){pick=c;break;}}
+  state.cards.push(pick.id);save();
+  setTimeout(()=>{toast('📖 ことばの図鑑に追加: '+pick.e+' '+pick.n+(pick.r==='SR'?'（超レア！）':pick.r==='R'?'（レア）':''));pop();},1700);
+}
+function lvlInfo(xp){let l=1,need=100,acc=0;while(xp>=acc+need){acc+=need;l++;need=100*l;}return{level:l,cur:xp-acc,need};}
+if(!state.cards)state.cards=[];
+if(!state.tickets){state.tickets={earned:Math.max(0,lvlInfo(state.xp).level-1)+state.ach.length,used:[]};save();}
+if(!state.ticketLabel)state.ticketLabel='ゲーム30分';
+state.tickets.used=state.tickets.used.map(u=>typeof u==='string'?{d:u,l:'ゲーム30分'}:u);
+function ticketsLeft(){return state.tickets.earned-state.tickets.used.length;}
+function grantTicket(n){state.tickets.earned+=n;save();setTimeout(()=>toast('🎟 ごほうび券獲得！（残り'+ticketsLeft()+'枚）'),1100);}
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function touchStreak(){
+  const t=todayStr();if(state.streak.day===t)return;
+  const y=new Date(Date.now()-864e5);
+  const ys=y.getFullYear()+'-'+String(y.getMonth()+1).padStart(2,'0')+'-'+String(y.getDate()).padStart(2,'0');
+  state.streak.count=(state.streak.day===ys)?state.streak.count+1:1;
+  state.streak.day=t;save();
+  if(state.streak.count%5===0){toast('🔥 '+state.streak.count+'日連続達成！');grantTicket(1);grantCard();}
+  else if(state.streak.count>=2)toast('🔥 '+state.streak.count+'日連続！');
+  checkAch();
+}
+function addXp(n){
+  const before=lvlInfo(state.xp).level;
+  state.xp+=n;
+  const after=lvlInfo(state.xp).level;
+  save();
+  if(after>before){pop();setTimeout(()=>toast('🎉 Lv.'+after+'「'+titleOf(after).j+'」に到達！'),350);grantTicket(after-before);grantCard();}
+  checkAch();
+}
+function unlock(id){
+  if(state.ach.includes(id))return;
+  state.ach.push(id);save();
+  const a=ACH.find(x=>x.id===id);
+  setTimeout(()=>toast('🏅 実績解除: '+(a?a.name:id)),700);
+  grantTicket(1);grantCard();
+}
+function checkAch(){
+  const learned=state.words.filter(x=>x.learned).length;
+  const lv=lvlInfo(state.xp).level;
+  if(state.maxCombo>=5)unlock('combo5');
+  if(state.maxCombo>=10)unlock('combo10');
+  if(state.maxCombo>=20)unlock('combo20');
+  [[50,'learn50'],[150,'learn150'],[300,'learn300'],[600,'learn600'],[1000,'learn1000'],[2000,'learn2000']]
+    .forEach(([n,id])=>{if(learned>=n)unlock(id);});
+  [[3,'streak3'],[7,'streak7'],[14,'streak14'],[30,'streak30']]
+    .forEach(([n,id])=>{if(state.streak.count>=n)unlock(id);});
+  [[5,'lv5'],[10,'lv10'],[20,'lv20']].forEach(([n,id])=>{if(lv>=n)unlock(id);});
+  if((state.best.ta||0)>=15)unlock('ta15');
+  if((state.best.ta||0)>=25)unlock('ta25');
+  if((state.best.spell||0)>=10)unlock('spell10');
+  if((state.best.ls_choice||0)>=10)unlock('listen10');
+  if((state.best.ls_dict||0)>=10)unlock('dict10');
+  LEVELS.filter(l=>l.id!=='my').forEach(l=>{
+    const ws=lvStat(l.id);
+    if(ws.total>0&&ws.learned>=ws.total)unlock('lvclear');
+  });
+}
+function lvStat(lv){
+  const ids=new Set(state.groups.filter(g=>g.lv===lv).map(g=>g.id));
+  const ws=state.words.filter(x=>ids.has(x.groupId));
+  let c=0,w=0;ws.forEach(x=>{c+=x.correct||0;w+=x.wrong||0;});
+  return {total:ws.length,learned:ws.filter(x=>x.learned).length,rate:(c+w)?Math.round(c/(c+w)*100):0,tried:c+w};
+}
+function rankOf(rate){return rate>=100?'S':rate>=80?'A':rate>=60?'B':rate>=40?'C':'D';}
+
+const $=id=>document.getElementById(id);
+const screen=$('screen');
+function isWeak(x){ return x.wrong>0 && x.correct<=x.wrong; }
+function weakWords(){ const ids=new Set(groupsOfLv().map(g=>g.id)); return state.words.filter(x=>isWeak(x)&&(curLevel==='all'||ids.has(x.groupId))); }
+function groupsOfLv(){ return state.groups.filter(g=>curLevel==='all'||g.lv===curLevel||g.lv==='my'); }
+function lvWords(){ const ids=new Set(groupsOfLv().map(g=>g.id)); return state.words.filter(x=>ids.has(x.groupId)); }
+function wordsOf(g){ if(g==='all')return lvWords(); if(g==='review')return weakWords(); return state.words.filter(x=>x.groupId===g); }
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function groupName(g){ if(g==='all')return'全部'; if(g==='review')return'苦手な単語'; const o=state.groups.find(x=>x.id===g); return o?o.name:'?'; }
+function norm(s){ return s.toLowerCase().replace(/\s+/g,' ').trim(); }
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
+function updatePill(){ $('grpPill').textContent=groupName(currentGroup); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function speak(text,rate){ try{ if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate||.9; speechSynthesis.speak(u); }catch(e){} }
+function speakCur(){ const c=fc.list[fc.i]; if(c)speak(c.en); }
+function speakQuiz(){ const c=qz.list[qz.i]; if(c)speak(c.en); }
+function speakSp(){ const c=sp.list[sp.i]; if(c)speak(c.en); }
+function speakLs(){ const c=ls.list[ls.i]; if(c)speak(c.en); }
+function pop(){
+  const p=document.createElement('div');p.className='pop';const ems=['⭐','✨','🎉','💫'];
+  for(let i=0;i<8;i++){const s=document.createElement('span');s.textContent=ems[i%ems.length];
+    s.style.setProperty('--dx',(Math.random()*200-100)+'px');s.style.setProperty('--dy',(-Math.random()*160-40)+'px');p.appendChild(s);}
+  document.body.appendChild(p);setTimeout(()=>p.remove(),800);
+}
+
+function renderHome(){
+  updatePill();
+  const all=lvWords(),total=all.length,learned=all.filter(x=>x.learned).length;
+  const pct=total?Math.round(learned/total*100):0;
+  const C=2*Math.PI*46,off=C*(1-pct/100);
+  const weakN=weakWords().length;
+  const weakChip=weakN>0?`<div class="grp-chip weak ${currentGroup==='review'?'on':''}" onclick="selectGroup('review')">⚠️ 苦手だけ<small>${weakN}語</small></div>`:'';
+  const lvChips=[{id:'all',name:'すべて'}].concat(LEVELS).map(l=>
+    `<div class="lv-chip ${curLevel===l.id?'on':''}" onclick="setLevel('${l.id}')">${esc(l.name)}</div>`).join('');
+  const chips=weakChip+[{id:'all',name:'全部'}].concat(groupsOfLv()).map(g=>{
+    const c=g.id==='all'?state.words.length:wordsOf(g.id).length;
+    return `<div class="grp-chip ${currentGroup===g.id?'on':''}" onclick="selectGroup('${g.id}')">${esc(g.name)}<small>${c}語</small></div>`;
+  }).join('');
+  screen.innerHTML=`
+    <div class="ring-card">
+      <div class="ring">
+        <svg width="104" height="104">
+          <circle cx="52" cy="52" r="46" fill="none" stroke="var(--border)" stroke-width="10"/>
+          <circle cx="52" cy="52" r="46" fill="none" stroke="var(--primary)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="pct"><b>${pct}%</b><small>マスター</small></div>
+      </div>
+      <div class="ring-info"><h2>学習の状況</h2>
+        <div class="stat"><div>覚えた<b>${learned}</b></div><div>全部<b>${total}</b></div></div>
+      </div>
+    </div>
+    <div class="section-label">🎓 レベルを選ぶ</div>
+    <div class="grp-scroll">${lvChips}</div>
+    <div class="section-label">📚 グループを選ぶ</div>
+    <div class="grp-scroll">${chips}</div>
+    <div class="ring-card" style="padding:16px 20px;gap:14px">
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+          <span style="font-family:Poppins;font-weight:800;font-size:18px;color:var(--primary)">Lv.${lvlInfo(state.xp).level}</span> <span style="font-size:12px;font-weight:800;color:var(--accent)">${titleOf(lvlInfo(state.xp).level).e} ${titleOf(lvlInfo(state.xp).level).j}</span>
+          <span style="font-size:11px;color:var(--sub);font-weight:700">${state.streak.count>=2?'🔥 '+state.streak.count+'日連続':'今日も今日も一歩'}</span>
+        </div>
+        <div class="progress-line" style="margin:0 0 4px"><i style="width:${lvlInfo(state.xp).cur/lvlInfo(state.xp).need*100}%"></i></div>
+        <div style="font-size:10px;color:var(--sub);font-weight:700;text-align:right">あと ${lvlInfo(state.xp).need-lvlInfo(state.xp).cur} XP でレベルアップ</div>
+      </div>
+    </div>
+    <button class="btn btn-ghost" style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center" onclick="renderTickets()"><span>🎟 ごほうび券</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${ticketsLeft()}枚</span></button>
+    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderZukan()"><span>📖 ことばの図鑑</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${state.cards.length}/${CARDS.length}</span></button>
+    <div class="ring-card" style="display:block;padding:16px 18px">
+      <h2 style="font-size:13px;font-weight:900;margin-bottom:10px">📊 レベル別の記録</h2>
+      ${LEVELS.filter(l=>l.id!=='my').map(l=>{
+        const st=lvStat(l.id);
+        const pct=st.total?st.learned/st.total*100:0;
+        return `<div class="lvstat"><span class="ln lvc-${l.id}">${esc(l.name)}</span><div class="lb"><i class="lvc-${l.id}" style="width:${pct}%"></i></div><span class="lnum">${st.learned}/${st.total}</span><span class="lrate">${st.tried?st.rate+'%':'--'}</span></div>`;
+      }).join('')}
+      <div style="font-size:10px;color:var(--sub);font-weight:600;margin-top:8px">覚えた数 ／ 正答率</div>
+    </div>
+    <div class="section-label">🎯 トレーニング</div>
+    <div class="toggle-row" style="justify-content:flex-start;margin-bottom:12px"><span style="font-size:11px;color:var(--sub);font-weight:700;margin-right:8px">1回の出題数</span><div class="seg">
+      <button class="${quizCount===10?'on':''}" onclick="setCount(10)">10問</button>
+      <button class="${quizCount===20?'on':''}" onclick="setCount(20)">20問</button>
+      <button class="${quizCount==='all'?'on':''}" onclick="setCount('all')">全部</button>
+    </div></div>
+    <div class="modes">
+      <div class="mode flash" onclick="startFlash()"><div class="ic">🃏</div><h3>フラッシュカード</h3><p>カードをめくって覚える</p></div>
+      <div class="mode quiz" onclick="startQuiz()"><div class="ic">✏️</div><h3>4択クイズ</h3><p>意味を当ててチェック</p></div>
+      <div class="mode game" onclick="startGame()"><div class="ic">⚡</div><h3>マッチング</h3><p>ペアをそろえてタイムを競う</p></div>
+      <div class="mode spell" onclick="startSpell()"><div class="ic">✍️</div><h3>書いて覚える</h3><p>意味を見て英語を入力</p></div>
+      <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
+    </div>
+    <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
+    <div class="section-label" style="margin-top:16px">🏅 実績（${state.ach.length}/${ACH.length}）</div>
+    <div class="ach-grid">
+      ${ACH.map(a=>{const got=state.ach.includes(a.id);
+        return `<div class="achb ${got?'got':''}"><div class="an">${got?'🏅':'🔒'} ${a.name}</div><div class="ad">${a.desc}</div></div>`;}).join('')}
+    </div>
+    <div class="manage-btn" onclick="renderManage()">
+      <div class="ic">➕</div>
+      <div><h3>単語を増やす・編集する</h3><p>教科書に合わせて登録／Unitグループに追加</p></div>
+    </div>`;
+}
+function selectGroup(g){ currentGroup=g; renderHome(); }
+function setCount(n){ quizCount=n; renderHome(); }
+
+/* フラッシュカード */
+let fc={list:[],i:0,flipped:false,dir:'en'};
+function startFlash(){ const list=wordsOf(currentGroup); if(!list.length){toast('このグループに単語がありません');return;} fc={list:shuffle(list),i:0,flipped:false,dir:'en'}; renderFlash(); }
+function renderFlash(){
+  const c=fc.list[fc.i];
+  const front=fc.dir==='en'?c.en:c.ja, back=fc.dir==='en'?c.ja:c.en;
+  const show=fc.flipped?back:front;
+  const cls=(fc.flipped?(fc.dir==='en'?'ja':'en'):(fc.dir==='en'?'en':'ja'));
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>🃏 フラッシュカード</h2><span class="counter">${fc.i+1}/${fc.list.length}</span></div>
+    <div class="progress-line"><i style="width:${(fc.i+1)/fc.list.length*100}%"></i></div>
+    <div class="toggle-row"><div class="seg">
+      <button class="${fc.dir==='en'?'on':''}" onclick="fcDir('en')">英 → 日</button>
+      <button class="${fc.dir==='ja'?'on':''}" onclick="fcDir('ja')">日 → 英</button>
+    </div></div>
+    <div style="height:14px"></div>
+    <div class="flash-wrap">
+      <div class="card ${c.learned?'learned-mark':''}" onclick="fcFlip()">
+        <span class="tag">${esc(groupName(c.groupId))}</span>
+        <div class="${cls}">${esc(show)}</div>
+        <span class="tap-hint">${fc.flipped?'タップで戻る':'タップで答え'}</span>
+      </div>
+      <button class="btn btn-ghost" onclick="speakCur()">🔊 発音を聞く</button>
+      <div class="flash-mark">
+        <button class="btn ${c.learned?'btn-ghost':'btn-primary'}" onclick="fcLearn(true)">✓ 覚えた</button>
+        <button class="btn btn-ghost" onclick="fcLearn(false)">まだ</button>
+      </div>
+      <div class="flash-nav">
+        <button class="btn btn-ghost" onclick="fcMove(-1)">‹ 前</button>
+        <button class="btn btn-ghost" onclick="fcMove(1)">次 ›</button>
+      </div>
+    </div>`;
+}
+function fcFlip(){ fc.flipped=!fc.flipped; renderFlash(); }
+function fcDir(d){ fc.dir=d; fc.flipped=false; renderFlash(); }
+function fcMove(n){ fc.i=(fc.i+n+fc.list.length)%fc.list.length; fc.flipped=false; renderFlash(); }
+function fcLearn(v){
+  const c=fc.list[fc.i],real=state.words.find(x=>x.id===c.id);
+  if(real){real.learned=v;c.learned=v;} save();
+  if(v){addXp(3);touchStreak();}
+  if(fc.i<fc.list.length-1){fc.i++;fc.flipped=false;}
+  renderFlash();
+  toast(v?'ナイス、覚えたね +3XP':'OK、あとでまた出題するね');
+}
+
+/* クイズ */
+let qz={list:[],i:0,score:0,miss:[],dir:'en',answered:false};
+function startQuiz(){ const list=wordsOf(currentGroup); if(list.length<4){toast('クイズは4語以上で遊べるよ');return;} const qn=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  qz={list:shuffle(list).slice(0,qn),i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0}; renderQuiz(); }
+function renderQuiz(){
+  if(qz.i>=qz.list.length) return renderQuizResult();
+  const c=qz.list[qz.i],askEn=qz.dir==='en';
+  const question=askEn?c.en:c.ja;
+  const pool=state.words.filter(x=>x.id!==c.id);
+  const opts=shuffle([c,...shuffle(pool).slice(0,3)]);
+  const ct=x=>askEn?x.ja:x.en;
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>✏️ クイズ</h2><span class="quiz-score">${qz.combo>=2?`<span class="combo-tag">🔥${qz.combo} </span>`:''}⭐ ${qz.score}</span></div>
+    <div class="progress-line"><i style="width:${qz.i/qz.list.length*100}%"></i></div>
+    <div class="q-card"><div class="qlabel">${askEn?'この単語の意味は？':'これを英語で言うと？'}</div>
+      <div class="qword ${askEn?'':'ja'}">${esc(question)}</div>${askEn?'<div style="margin-top:14px"><button class="btn btn-ghost" style="max-width:180px;margin:0 auto" onclick="speakQuiz()">🔊 発音</button></div>':''}</div>
+    <div class="choices">
+      ${opts.map(x=>`<button class="choice" data-id="${x.id}" onclick="answerQuiz('${x.id}','${c.id}')">${esc(ct(x))}</button>`).join('')}
+    </div>`;
+}
+function answerQuiz(picked,correctId){
+  if(qz.answered)return; qz.answered=true;
+  const c=qz.list[qz.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
+  document.querySelectorAll('.choice').forEach(b=>{
+    const id=b.dataset.id;
+    if(id===correctId)b.classList.add('correct');
+    else if(id===picked)b.classList.add('wrong'); else b.classList.add('dim');
+    b.onclick=null;
+  });
+  if(ok){qz.score++;qz.combo++;qz.maxCombo=Math.max(qz.maxCombo,qz.combo);
+    if(qz.combo>state.maxCombo){state.maxCombo=qz.combo;}
+    if(real){real.correct++;if(real.correct>=3)real.learned=true;}
+    addXp(10+(qz.combo>=5?10:qz.combo>=3?5:0));touchStreak();pop(qz.combo>=3?14:8);
+  } else {qz.combo=0;qz.miss.push(c);if(real)real.wrong++;}
+  save();
+  setTimeout(()=>{qz.i++;qz.answered=false;renderQuiz();},ok?700:1300);
+}
+function renderQuizResult(){
+  const total=qz.list.length,rate=Math.round(qz.score/total*100);
+  const rk=rankOf(rate);unlock('first');
+  const bk='quiz';const isBest=qz.score>(state.best[bk]||0);
+  if(isBest){state.best[bk]=qz.score;save();}
+  let emoji='💪',msg='その調子！';
+  if(rate===100){emoji='🏆';msg='全部正解！すごい！';}
+  else if(rate>=80){emoji='🎉';msg='よくできました！';}
+  else if(rate>=50){emoji='👍';msg='いい感じ、あと少し！';}
+  else{emoji='📖';msg='くりかえしが力になるよ';}
+  const miss=qz.miss.length?`<div class="section-label" style="margin-top:6px">まちがえた単語</div>
+    <div class="miss-list">${qz.miss.map(x=>`<div class="row"><b>${esc(x.en)}</b><span>${esc(x.ja)}</span></div>`).join('')}</div>`:'';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">${emoji}</div>
+      <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rk}</div>
+      <div class="big">${qz.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
+      <h2>${msg}</h2><p>正答率 ${rate}% ／ 最大 ${qz.maxCombo} コンボ${isBest?' ／ 🏅ベスト更新！':''}</p></div>
+    ${miss}
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startQuiz()">もう一回</button></div>`;
+}
+
+/* タイムアタック */
+let ta={pool:[],i:0,score:0,t:60,timer:null,answered:false,combo:0};
+function startTA(){
+  const list=wordsOf(currentGroup);
+  if(list.length<4){toast('タイムアタックは4語以上必要です');return;}
+  ta={pool:shuffle(list),i:0,score:0,t:60,timer:null,answered:false,combo:0};
+  renderTA();
+  ta.timer=setInterval(()=>{ta.t--;const el=$('taTimer');
+    if(el){el.textContent=ta.t;if(ta.t<=10)el.style.color='var(--danger)';}
+    if(ta.t<=0){clearInterval(ta.timer);finishTA();}},1000);
+}
+function taWord(){ if(ta.i>=ta.pool.length){ta.pool=shuffle(ta.pool);ta.i=0;} return ta.pool[ta.i]; }
+function renderTA(){
+  const c=taWord();ta.answered=false;
+  const others=shuffle(state.words.filter(x=>x.id!==c.id)).slice(0,3);
+  const opts=shuffle([c,...others]);
+  screen.innerHTML=`
+    <button class="back" onclick="quitTA()">‹ やめる</button>
+    <div class="mode-head"><h2>⚡ タイムアタック</h2>
+      <span class="quiz-score">${ta.combo>=2?`<span class="combo-tag">🔥${ta.combo} </span>`:''}⭐ ${ta.score}　<span id="taTimer" style="font-family:Poppins;font-weight:800;font-size:20px;color:var(--accent)">${ta.t}</span></span></div>
+    <div class="q-card"><div class="qlabel">この単語の意味は？</div>
+      <div class="qword">${esc(c.en)}</div></div>
+    <div class="choices">
+      ${opts.map(x=>`<button class="choice" data-id="${x.id}" onclick="answerTA('${x.id}','${c.id}')">${esc(x.ja)}</button>`).join('')}
+    </div>`;
+}
+function answerTA(picked,correctId){
+  if(ta.answered)return;ta.answered=true;
+  const c=ta.pool[ta.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
+  document.querySelectorAll('.choice').forEach(b=>{const id=b.dataset.id;
+    if(id===correctId)b.classList.add('correct');else if(id===picked)b.classList.add('wrong');else b.classList.add('dim');b.onclick=null;});
+  if(ok){ta.score++;ta.combo++;if(ta.combo>state.maxCombo)state.maxCombo=ta.combo;
+    if(real){real.correct++;if(real.correct>=3)real.learned=true;}pop(6);}
+  else{ta.combo=0;if(real)real.wrong++;}
+  save();
+  setTimeout(()=>{ta.i++;if(ta.t>0)renderTA();},ok?350:650);
+}
+function quitTA(){clearInterval(ta.timer);renderHome();}
+function finishTA(){
+  const isBest=ta.score>(state.best.ta||0);
+  if(isBest){state.best.ta=ta.score;}
+  addXp(ta.score*10);touchStreak();save();checkAch();
+  const rk=ta.score>=20?'S':ta.score>=15?'A':ta.score>=10?'B':ta.score>=6?'C':'D';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">⚡</div>
+      <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rk}</div>
+      <div class="big">${ta.score}<span style="font-size:26px;color:var(--sub)">問</span></div>
+      <h2>${isBest?'🏅 自己ベスト更新！':'おつかれさま！'}</h2>
+      <p>60秒で ${ta.score}問正解 ／ +${ta.score*10}XP</p></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startTA()">もう一回</button></div>`;
+  if(ta.score>=15)setTimeout(()=>pop(18),200);
+}
+
+/* 書いて覚える */
+let sp={list:[],i:0,score:0,miss:[],answered:false};
+function startSpell(){ const list=wordsOf(currentGroup); if(!list.length){toast('このグループに単語がありません');return;}
+  const n=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  sp={list:shuffle(list).slice(0,n),i:0,score:0,miss:[],answered:false,hint:0,retry:false,combo:0,maxCombo:0}; renderSpell(); }
+function renderSpell(){
+  if(sp.i>=sp.list.length) return renderSpellResult();
+  const c=sp.list[sp.i];
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>✍️ 書いて覚える</h2><span class="quiz-score">${sp.combo>=2?`<span class="combo-tag">🔥${sp.combo} </span>`:''}⭐ ${sp.score} (${sp.i+1}/${sp.list.length})</span></div>
+    <div class="progress-line"><i style="width:${sp.i/sp.list.length*100}%"></i></div>
+    <div class="q-card"><div class="qlabel">${sp.retry?'もう一度：正しいつづりで書こう':'この意味を英語で書く'}</div>
+      <div class="qword ja">${esc(c.ja)}</div>
+      <div id="spHint" style="font-family:Poppins;letter-spacing:5px;color:var(--sub);font-size:18px;margin-top:12px;min-height:24px"></div>
+    </div>
+    <div class="field"><input id="spInput" placeholder="ここに英語を入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')checkSpell()"></div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-ghost" onclick="spellHint()">💡 ヒント</button>
+      <button class="btn btn-primary" onclick="checkSpell()">こたえる</button>
+    </div>
+    <div id="spFeedback" style="margin-top:16px"></div>`;
+  if(sp.hint>0) showHint();
+  setTimeout(()=>{const el=$('spInput');if(el)el.focus();},60);
+}
+function showHint(){
+  const c=sp.list[sp.i],el=$('spHint'); if(!el)return;
+  const en=c.en, letters=en.replace(/ /g,'').length;
+  if(sp.hint===1){ el.textContent=en.split('').map(ch=>ch===' '?'·':'_').join(' ')+`  (${letters}文字)`; }
+  else if(sp.hint===2){ el.textContent=en.split('').map((ch,i)=>ch===' '?'·':(i===0?ch:'_')).join(' ')+`  (${letters}文字)`; }
+  else if(sp.hint>=3){ el.textContent=en.split('').map((ch,i)=>ch===' '?'·':(i===0||i===en.length-1||i%2===0?ch:'_')).join(' '); }
+}
+function spellHint(){ if(sp.hint<3)sp.hint++; showHint(); }
+function checkSpell(){
+  if(sp.answered)return;
+  const c=sp.list[sp.i],val=$('spInput').value;
+  if(!val.trim()){toast('英語を入力してください');return;}
+  sp.answered=true;
+  const ok=norm(val)===norm(c.en),real=state.words.find(x=>x.id===c.id),fb=$('spFeedback');
+  const inp=$('spInput'); if(inp) inp.disabled=true;
+  if(ok){
+    if(!sp.retry){ sp.score++; sp.combo++; sp.maxCombo=Math.max(sp.maxCombo,sp.combo);
+      if(sp.combo>state.maxCombo)state.maxCombo=sp.combo;
+      if(real){real.correct++; if(real.correct>=3)real.learned=true;}
+      addXp(15+(sp.combo>=5?10:sp.combo>=3?5:0));touchStreak(); }
+    pop(sp.combo>=3?14:8);
+    fb.innerHTML=`<div style="background:var(--success);color:#fff;border-radius:14px;padding:16px;text-align:center;font-weight:800;font-size:16px">⭕ 正解！　<span style="font-family:Poppins">${esc(c.en)}</span></div>
+      <div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-ghost" onclick="speakSp()">🔊 発音</button><button class="btn btn-primary" onclick="nextSpell()">次へ ›</button></div>`;
+  }else{
+    if(!sp.retry){ sp.combo=0; sp.miss.push(c); if(real)real.wrong++; }
+    fb.innerHTML=`<div style="background:#FFF0F2;border:1.5px solid var(--danger);border-radius:14px;padding:16px;text-align:center">
+      <div style="color:var(--danger);font-weight:800;margin-bottom:6px">❌ おしい！ 正解は…</div>
+      <div style="font-family:Poppins;font-size:26px;font-weight:700;color:var(--text)">${esc(c.en)}</div>
+      <div style="font-size:12px;color:var(--sub);font-weight:600;margin-top:8px">あなたの答え: ${esc(val)}</div></div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-ghost" style="flex:0 0 auto;width:auto;padding:15px 14px" onclick="speakSp()">🔊</button>
+        <button class="btn btn-accent" onclick="retrySpell()">✍️ もう一度</button>
+        <button class="btn btn-ghost" onclick="nextSpell()">次へ ›</button></div>`;
+  }
+  save();
+}
+function retrySpell(){ sp.answered=false; sp.retry=true; sp.hint=2; renderSpell(); }
+function nextSpell(){ sp.i++; sp.answered=false; sp.hint=0; sp.retry=false; renderSpell(); }
+function renderSpellResult(){
+  if(sp.score>(state.best.spell||0)){state.best.spell=sp.score;save();}
+  checkAch();
+  const total=sp.list.length,rate=Math.round(sp.score/total*100);
+  let emoji='✍️',msg='よく書けました！';
+  if(rate===100){emoji='🏆';msg='全部正解！スペル完璧！';}
+  else if(rate>=80){emoji='🎉';msg='よくできました！';}
+  else if(rate>=50){emoji='👍';msg='その調子、くりかえそう！';}
+  else{emoji='📖';msg='書いて覚えるのが一番の近道だよ';}
+  const miss=sp.miss.length?`<div class="section-label" style="margin-top:6px">まちがえた単語</div>
+    <div class="miss-list">${sp.miss.map(x=>`<div class="row"><b>${esc(x.en)}</b><span>${esc(x.ja)}</span></div>`).join('')}</div>`:'';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">${emoji}</div>
+      <div class="big">${sp.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
+      <h2>${msg}</h2><p>正答率 ${rate}%</p></div>
+    ${miss}
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startSpell()">もう一回</button></div>`;
+}
+
+/* マッチング */
+let gm={pairs:[],sel:null,done:0,t:0,timer:null,need:0};
+function startGame(){
+  const list=wordsOf(currentGroup); if(list.length<3){toast('マッチングは3語以上で遊べるよ');return;}
+  const pick=shuffle(list).slice(0,Math.min(6,list.length));
+  gm={pairs:pick,sel:null,done:0,t:0,timer:null,need:pick.length};
+  renderGame();
+  clearInterval(gm.timer);
+  gm.timer=setInterval(()=>{gm.t++;const el=$('gmTimer');if(el)el.textContent=fmt(gm.t);else clearInterval(gm.timer);},1000);
+}
+function fmt(s){const m=Math.floor(s/60),x=s%60;return (m>0?m+':':'')+(m>0?String(x).padStart(2,'0'):x)+(m>0?'':'秒');}
+function renderGame(){
+  const ens=gm.pairs.map(p=>({id:p.id,text:p.en,type:'en'}));
+  const jas=gm.pairs.map(p=>({id:p.id,text:p.ja,type:'ja'}));
+  const tiles=shuffle(ens.concat(jas));
+  screen.innerHTML=`
+    <button class="back" onclick="stopGame()">‹ 戻る</button>
+    <div class="mode-head"><h2>⚡ マッチング</h2></div>
+    <div class="game-top"><span class="left">残り ${gm.need-gm.done} ペア</span><span class="timer" id="gmTimer">${fmt(gm.t)}</span></div>
+    <div class="match-grid" id="grid">
+      ${tiles.map(t=>`<div class="tile ${t.type}" data-id="${t.id}" data-type="${t.type}" onclick="tapTile(this)">${esc(t.text)}</div>`).join('')}
+    </div>`;
+}
+function tapTile(el){
+  if(el.classList.contains('done')||el.classList.contains('sel'))return;
+  if(!gm.sel){gm.sel=el;el.classList.add('sel');return;}
+  const a=gm.sel,b=el;
+  if(a.dataset.type===b.dataset.type){a.classList.remove('sel');gm.sel=b;b.classList.add('sel');return;}
+  if(a.dataset.id===b.dataset.id){
+    a.classList.add('done');b.classList.add('done');gm.sel=null;gm.done++;pop();
+    const left=document.querySelector('.left');if(left)left.textContent=`残り ${gm.need-gm.done} ペア`;
+    if(gm.done>=gm.need)finishGame();
+  }else{
+    b.classList.add('miss');a.classList.add('miss');const a2=a,b2=b;gm.sel=null;
+    setTimeout(()=>{a2.classList.remove('miss','sel');b2.classList.remove('miss');},350);
+  }
+}
+function stopGame(){ clearInterval(gm.timer); renderHome(); }
+function finishGame(){
+  clearInterval(gm.timer);
+  addXp(30);touchStreak();
+  setTimeout(()=>{ screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">⚡</div><div class="big">${fmt(gm.t)}</div><h2>クリア！</h2><p>${gm.need}ペア そろえたよ</p></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startGame()">もう一回</button></div>`; },400);
+}
+
+/* ごほうび券 */
+function editTicketLabel(){
+  const v=prompt('ごほうび券の内容を入力してね（保護者と決めよう）',state.ticketLabel);
+  if(v&&v.trim()){state.ticketLabel=v.trim();save();toast('券の内容を「'+state.ticketLabel+'」にしたよ');renderTickets();}
+}
+function renderTickets(){
+  const left=ticketsLeft();
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>🎟 ごほうび券</h2></div>
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:6px">
+      <div style="font-size:12px;color:var(--sub);font-weight:700">使える券</div>
+      <div style="font-family:Poppins;font-size:52px;font-weight:800;color:var(--accent);line-height:1">${left}<span style="font-size:20px;color:var(--sub)">枚</span></div>
+      <div style="font-size:12px;font-weight:700">1枚 = ${esc(state.ticketLabel)}</div>
+    </div>
+    <button class="btn btn-accent" ${left?'':'disabled style="opacity:.5"'} onclick="useTicket()">1枚使う（保護者に見せる）</button>
+    <p class="help">レベルアップで1枚、実績解除で1枚、連続学習5日ごとに1枚もらえます。使うときは、この画面を保護者に見せてから「使う」を押してください。</p>
+    <button class="btn btn-ghost" style="margin-top:10px;font-size:13px;padding:12px" onclick="editTicketLabel()">⚙ 券の内容を変更（保護者向け）</button>
+    ${state.tickets.used.length?`<div class="section-label" style="margin-top:14px">使った記録</div>
+    <div class="word-list">${state.tickets.used.slice().reverse().slice(0,10).map(u=>`<div class="word-row"><div><span class="w-ja">🎟 ${esc(u.l)}</span><div class="w-grp">${esc(u.d)}</div></div></div>`).join('')}</div>`:''}
+  `;
+}
+function useTicket(){
+  if(ticketsLeft()<=0){toast('券がありません。レベルアップで獲得できます');return;}
+  if(!confirm('ごほうび券を1枚使う？\n（'+state.ticketLabel+'）'))return;
+  const d=new Date();
+  state.tickets.used.push({d:d.getFullYear()+'/'+(d.getMonth()+1)+'/'+d.getDate()+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'),l:state.ticketLabel});
+  save();pop(12);toast('🎟 「'+state.ticketLabel+'」を1枚使った！');renderTickets();
+}
+
+/* リスニング */
+let ls={list:[],i:0,score:0,miss:[],mode:'choice',answered:false,combo:0,maxCombo:0,revealed:false};
+function startLs(){
+  const list=wordsOf(currentGroup);
+  if(list.length<4){toast('リスニングは4語以上必要です');return;}
+  const n=quizCount==='all'?list.length:Math.min(quizCount,list.length);
+  ls={list:shuffle(list).slice(0,n),i:0,score:0,miss:[],mode:ls.mode||'choice',answered:false,combo:0,maxCombo:0,revealed:false};
+  renderLs();
+}
+function lsMode(m){ ls.mode=m; ls.answered=false; ls.revealed=false; renderLs(); }
+function renderLs(){
+  if(ls.i>=ls.list.length) return renderLsResult();
+  const c=ls.list[ls.i];ls.answered=false;ls.revealed=false;
+  let body='';
+  if(ls.mode==='choice'){
+    const others=shuffle(state.words.filter(x=>x.id!==c.id)).slice(0,3);
+    const opts=shuffle([c,...others]);
+    body=`<div class="choices">${opts.map(x=>`<button class="choice" data-id="${x.id}" onclick="answerLsChoice('${x.id}','${c.id}')">${esc(x.ja)}</button>`).join('')}</div>`;
+  }else{
+    body=`
+      <div class="field" style="margin-bottom:10px"><input id="lsInput" placeholder="聞こえた英語を入力" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')checkLsDict()"></div>
+      <div id="lsHintArea" style="min-height:22px;margin-bottom:10px;font-size:13px;color:var(--sub);font-weight:700;text-align:center"></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="lsHint()">💡 意味を見る</button>
+        <button class="btn btn-primary" onclick="checkLsDict()">こたえる</button>
+      </div>`;
+  }
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>👂 リスニング</h2><span class="quiz-score">${ls.combo>=2?`<span class="combo-tag">🔥${ls.combo} </span>`:''}⭐ ${ls.score} (${ls.i+1}/${ls.list.length})</span></div>
+    <div class="progress-line"><i style="width:${ls.i/ls.list.length*100}%"></i></div>
+    <div class="toggle-row"><div class="seg">
+      <button class="${ls.mode==='choice'?'on':''}" onclick="lsMode('choice')">聞いて選ぶ</button>
+      <button class="${ls.mode==='dict'?'on':''}" onclick="lsMode('dict')">聞いて書く</button>
+    </div></div>
+    <div style="height:12px"></div>
+    <div class="q-card" style="text-align:center">
+      <div class="qlabel">${ls.mode==='choice'?'音声を聞いて意味を選ぶ':'音声を聞いて英語で書く'}</div>
+      <button class="btn btn-accent" style="max-width:220px;margin:6px auto 0" onclick="speakLs()">🔊 もう一度聞く</button>
+    </div>
+    ${body}
+    <div id="lsFeedback" style="margin-top:14px"></div>`;
+  setTimeout(()=>{speakLs();const el=$('lsInput');if(el)el.focus();},350);
+}
+function lsHint(){
+  const c=ls.list[ls.i];
+  $('lsHintArea').textContent='意味: '+c.ja+'　('+c.en.replace(/ /g,'').length+'文字)';
+}
+function lsCorrect(real){
+  ls.score++;ls.combo++;ls.maxCombo=Math.max(ls.maxCombo,ls.combo);
+  if(ls.combo>state.maxCombo)state.maxCombo=ls.combo;
+  if(real){real.correct++;if(real.correct>=3)real.learned=true;}
+  addXp((ls.mode==='dict'?18:12)+(ls.combo>=5?10:ls.combo>=3?5:0));touchStreak();
+  pop(ls.combo>=3?14:8);
+}
+function lsWrong(c,real){ ls.combo=0; ls.miss.push(c); if(real)real.wrong++; }
+function answerLsChoice(picked,correctId){
+  if(ls.answered)return;ls.answered=true;
+  const c=ls.list[ls.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
+  document.querySelectorAll('.choice').forEach(b=>{const id=b.dataset.id;
+    if(id===correctId)b.classList.add('correct');else if(id===picked)b.classList.add('wrong');else b.classList.add('dim');b.onclick=null;});
+  if(ok)lsCorrect(real);else lsWrong(c,real);
+  save();
+  $('lsFeedback').innerHTML=`<div class="${ok?'':''}" style="text-align:center;font-weight:800;margin-bottom:10px">${ok?'⭕':'❌'} <span style="font-family:Poppins;font-size:22px;color:var(--primary)">${esc(c.en)}</span>　<span style="color:var(--sub)">${esc(c.ja)}</span></div>
+    <button class="btn btn-primary" onclick="lsNext()">次へ ›</button>`;
+}
+function checkLsDict(){
+  if(ls.answered)return;
+  const c=ls.list[ls.i],val=$('lsInput').value;
+  if(!val.trim()){toast('聞こえた英語を入力してください');return;}
+  ls.answered=true;
+  const ok=norm(val)===norm(c.en),real=state.words.find(x=>x.id===c.id);
+  const inp=$('lsInput');if(inp)inp.disabled=true;
+  if(ok)lsCorrect(real);else lsWrong(c,real);
+  save();
+  $('lsFeedback').innerHTML=ok
+    ?`<div style="background:var(--success);color:#fff;border-radius:14px;padding:14px;text-align:center;font-weight:800">⭕ 正解！ <span style="font-family:Poppins">${esc(c.en)}</span>（${esc(c.ja)}）</div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="lsNext()">次へ ›</button>`
+    :`<div style="background:#FFF0F2;border:1.5px solid var(--danger);border-radius:14px;padding:14px;text-align:center">
+        <div style="color:var(--danger);font-weight:800;margin-bottom:4px">❌ おしい！ 正解は…</div>
+        <div style="font-family:Poppins;font-size:24px;font-weight:700">${esc(c.en)}</div>
+        <div style="font-size:12px;color:var(--sub);font-weight:700;margin-top:4px">${esc(c.ja)}／あなたの答え: ${esc(val)}</div></div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="btn btn-ghost" onclick="speakLs()">🔊 もう一度</button>
+        <button class="btn btn-primary" onclick="lsNext()">次へ ›</button></div>`;
+}
+function lsNext(){ ls.i++; renderLs(); }
+function renderLsResult(){
+  const total=ls.list.length,rate=Math.round(ls.score/total*100),rk=rankOf(rate);
+  const bk='ls_'+ls.mode;const isBest=ls.score>(state.best[bk]||0);
+  if(isBest){state.best[bk]=ls.score;save();}
+  unlock('first');checkAch();
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">👂</div>
+      <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rk}</div>
+      <div class="big">${ls.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
+      <h2>${rate>=80?'耳がいいね！':'くり返せば必ず聞き取れるようになる'}</h2>
+      <p>${ls.mode==='dict'?'聞いて書く':'聞いて選ぶ'} ／ 最大 ${ls.maxCombo} コンボ${isBest?' ／ 🏅ベスト更新！':''}</p></div>
+    ${ls.miss.length?`<div class="section-label">まちがえた単語</div><div class="miss-list">${ls.miss.map(x=>`<div class="row"><b>${esc(x.en)}</b><span>${esc(x.ja)}</span></div>`).join('')}</div>`:''}
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startLs()">もう一回</button></div>`;
+}
+
+/* 単語管理 */
+let mngTab='list';
+function renderManage(){
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>➕ 単語を増やす</h2></div>
+    <div class="tabs">
+      <button class="${mngTab==='list'?'on':''}" onclick="mngSwitch('list')">一覧</button>
+      <button class="${mngTab==='add'?'on':''}" onclick="mngSwitch('add')">1語ずつ</button>
+      <button class="${mngTab==='bulk'?'on':''}" onclick="mngSwitch('bulk')">まとめて</button>
+      <button class="${mngTab==='grp'?'on':''}" onclick="mngSwitch('grp')">グループ</button>
+    </div>
+    <div id="mngBody"></div>`;
+  renderMngBody();
+}
+function mngSwitch(t){ mngTab=t; renderManage(); }
+function grpOptions(sel){ return state.groups.map(g=>`<option value="${g.id}" ${g.id===sel?'selected':''}>${esc(g.name)}</option>`).join(''); }
+function renderMngBody(){
+  const body=$('mngBody');
+  if(mngTab==='add'){
+    body.innerHTML=`
+      <div class="add-box">
+        <div class="row2">
+          <div class="field"><label>英語</label><input id="addEn" placeholder="apple" autocapitalize="off"></div>
+          <div class="field"><label>日本語</label><input id="addJa" placeholder="りんご"></div>
+        </div>
+        <div class="field"><label>グループ</label><select id="addGrp">${grpOptions(currentGroup!=='all'?currentGroup:state.groups[0].id)}</select></div>
+        <button class="btn btn-primary" onclick="addOne()">追加する</button>
+      </div>
+      <p class="help">自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>`;
+  }else if(mngTab==='bulk'){
+    body.innerHTML=`
+      <div class="add-box">
+        <div class="field"><label>グループ</label><select id="bulkGrp">${grpOptions(currentGroup!=='all'?currentGroup:'my1')}</select></div>
+        <div class="field"><label>単語リスト（1行に1つ）</label>
+          <textarea id="bulkText" placeholder="apple りんご&#10;dog 犬&#10;run 走る&#10;&#10;※ 英語と日本語の間は スペース か カンマ で区切る"></textarea></div>
+        <button class="btn btn-primary" onclick="addBulk()">まとめて追加</button>
+      </div>
+      <p class="help">教科書や単語帳を見ながら「英語 日本語」を改行で並べて貼り付ければ、一括登録できます。区切りはスペースでもカンマ(,)でも構いません。</p>`;
+  }else if(mngTab==='grp'){
+    body.innerHTML=`
+      <div class="add-box">
+        <div class="field"><label>新しいグループ名</label><input id="grpName" placeholder="例：Unit 9 / 不規則動詞"></div>
+        <button class="btn btn-primary" onclick="addGroup()">グループを作る</button>
+      </div>
+      <p class="help" style="margin-bottom:10px">✏️ で名前を変えられる（例：「Unit 1」→「Unit 1 Hello, everyone」）。🗑 で削除。</p>
+      <div class="word-list">
+        ${state.groups.map(g=>`<div class="word-row">
+          <div><div class="w-ja" style="font-size:14px">${esc(g.name)}</div><div class="w-grp">${wordsOf(g.id).length}語</div></div>
+          <div class="ops">
+            <button class="iconbtn" onclick="renameGroup('${g.id}')">✏️</button>
+            <button class="iconbtn del" onclick="delGroup('${g.id}')">🗑</button>
+          </div></div>`).join('')}
+      </div>`;
+  }else{
+    const list=wordsOf(currentGroup);
+    if(!list.length){ body.innerHTML=`<div class="empty">「${esc(groupName(currentGroup))}」にはまだ単語がないよ。<br>「1語ずつ」か「まとめて」から追加しよう。</div>`; return; }
+    body.innerHTML=`
+      <p class="help" style="margin-bottom:10px">表示中：<b style="color:var(--primary)">${esc(groupName(currentGroup))}</b>（${list.length}語）ホームでグループを切りかえられるよ。</p>
+      <div class="word-list">
+        ${list.map(x=>`<div class="word-row">
+          <div><span class="w-en">${esc(x.en)}</span> <span class="w-ja">${esc(x.ja)}</span><div class="w-grp">${esc(groupName(x.groupId))}${x.learned?' ・✓覚えた':''}</div></div>
+          <div class="ops"><button class="iconbtn del" onclick="delWord('${x.id}')">🗑</button></div>
+        </div>`).join('')}
+      </div>`;
+  }
+}
+function addOne(){
+  const en=$('addEn').value.trim(),ja=$('addJa').value.trim(),g=$('addGrp').value;
+  if(!en||!ja){toast('英語と日本語の両方を入れてね');return;}
+  state.words.push(w(en,ja,g)); save(); toast('追加したよ ✓');
+  $('addEn').value='';$('addJa').value='';$('addEn').focus();
+}
+function addBulk(){
+  const g=$('bulkGrp').value;
+  const lines=$('bulkText').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0;
+  lines.forEach(l=>{
+    const parts=l.includes(',')?l.split(','):l.split(/\s+/);
+    if(parts.length>=2){const en=parts[0].trim(),ja=parts.slice(1).join(' ').trim();if(en&&ja){state.words.push(w(en,ja,g));n++;}}
+  });
+  save(); toast(n?`${n}語 追加したよ 🎉`:'うまく読めなかったみたい');
+  if(n){mngTab='list';currentGroup=g;renderManage();}
+}
+function addGroup(){
+  const name=$('grpName').value.trim();
+  if(!name){toast('グループ名を入れてね');return;}
+  const ng={id:'g_'+Math.random().toString(36).slice(2,8),name,lv:'my'};state.groups.push(ng);state.myGroups.push(ng); save(); toast('グループを作成しました ✓'); renderManage();
+}
+function renameGroup(id){
+  const g=state.groups.find(x=>x.id===id); if(!g)return;
+  const name=prompt('グループ名を変更',g.name);
+  if(name&&name.trim()){g.name=name.trim();save();renderManage();}
+}
+function delGroup(id){
+  const cnt=wordsOf(id).length;
+  if(!confirm(`「${groupName(id)}」を消す？\n中の${cnt}語も一緒に消えるよ。`))return;
+  state.groups=state.groups.filter(g=>g.id!==id);
+  state.words=state.words.filter(x=>x.groupId!==id);
+  if(currentGroup===id)currentGroup='all';
+  save(); renderManage();
+}
+function delWord(id){ state.words=state.words.filter(x=>x.id!==id); save(); renderMngBody(); }
+
+function renderOnboard(){
+  screen.innerHTML=`
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:10px">
+      <div style="font-size:40px">📚</div>
+      <h2 style="font-size:19px;font-weight:900">WORD UP! へようこそ</h2>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">中学の基本から準1級レベルまで 1364語。<br>まず、今のレベルをえらんでね。</p>
+    </div>
+    <div class="section-label">🎓 今のレベル</div>
+    <div class="ob-grid">
+      ${LEVELS.filter(l=>l.id!=='my').map(l=>`<div class="ob-item" onclick="obPick('${l.id}')">${esc(l.name)}</div>`).join('')}
+    </div>
+    <p class="help">あとからいつでも変更できます。ほかのレベルの単語も使えます。</p>`;
+}
+function obPick(l){
+  state.level=l;curLevel=l;save();
+  screen.innerHTML=`
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:10px">
+      <div style="font-size:40px">🎟</div>
+      <h2 style="font-size:19px;font-weight:900">ごほうび券をきめよう</h2>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">レベルアップ・実績解除・連続学習で<br>「ごほうび券」がもらえます。<br>保護者の方と内容を決めてください。</p>
+    </div>
+    <div class="field"><label>ごほうび券1枚の内容</label>
+      <input id="obTicket" value="ゲーム30分" placeholder="例: ゲーム30分 / お菓子1個"></div>
+    <button class="btn btn-primary" onclick="obDone()">始める ›</button>
+    <p class="help">あとから「🎟 ごほうび券」の画面で変更できます。</p>`;
+}
+function obDone(){
+  const v=$('obTicket').value.trim();
+  if(v)state.ticketLabel=v;
+  state.onboarded=true;save();
+  toast('準備完了！今日も一歩 🎉');renderHome();
+}
+</script>
+</body>
+</html>
