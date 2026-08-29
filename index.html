@@ -282,7 +282,8 @@ function save(){
     state.myWords=state.words.filter(x=>x.own);
     const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
-      onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups};
+      onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
+      stat:state.stat};
     localStorage.setItem(STORE_KEY,JSON.stringify(out));
   }catch(e){ mem=state; }
 }
@@ -749,7 +750,7 @@ function norm(s){ return s.toLowerCase().replace(/\s+/g,' ').trim(); }
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1600); }
 function updatePill(){ $('grpPill').textContent=groupName(currentGroup); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function speak(text,rate){ try{ if(state&&state.stat){state.stat.speak++;} if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate||.9; speechSynthesis.speak(u); }catch(e){} }
+function speak(text,rate){ try{ if(state&&state.stat){state.stat.speak++;if(state.stat.speak%10===0)save();checkAch();} if(!('speechSynthesis' in window))return; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='en-US'; u.rate=rate||.9; speechSynthesis.speak(u); }catch(e){} }
 function speakCur(){ const c=fc.list[fc.i]; if(c)speak(c.en); }
 function speakQuiz(){ const c=qz.list[qz.i]; if(c)speak(c.en); }
 function speakSp(){ const c=sp.list[sp.i]; if(c)speak(c.en); }
@@ -880,7 +881,7 @@ function renderFlash(){
 function fcFlip(){ fc.flipped=!fc.flipped; renderFlash(); }
 function fcDir(d){ fc.dir=d; fc.flipped=false; renderFlash(); }
 function fcMove(n){ fc.i=(fc.i+n+fc.list.length)%fc.list.length; fc.flipped=false; renderFlash(); }
-function fcLearn(v){ markMode('flash');
+function fcLearn(v){ markMode('flash'); bumpQ();
   const c=fc.list[fc.i],real=state.words.find(x=>x.id===c.id);
   if(real){real.learned=v;c.learned=v;} save();
   if(v){addXp(3);touchStreak();}
@@ -984,7 +985,7 @@ function renderTA(){
     </div>`;
 }
 function answerTA(picked,correctId){
-  if(ta.answered)return;ta.answered=true;
+  if(ta.answered)return;ta.answered=true;bumpQ();
   const c=ta.pool[ta.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
   document.querySelectorAll('.choice').forEach(b=>{const id=b.dataset.id;
     if(id===correctId)b.classList.add('correct');else if(id===picked)b.classList.add('wrong');else b.classList.add('dim');b.onclick=null;});
@@ -1049,6 +1050,7 @@ function showHint(){
 function spellHint(){ if(sp.hint<3)sp.hint++; showHint(); }
 function checkSpell(){
   if(sp.answered)return;
+  bumpQ();
   const c=sp.list[sp.i],val=$('spInput').value;
   if(!val.trim()){toast('英語を入力してください');return;}
   sp.answered=true;
@@ -1236,7 +1238,7 @@ function lsCorrect(real){
 }
 function lsWrong(c,real){ ls.combo=0; ls.miss.push(c); if(real)real.wrong++; }
 function answerLsChoice(picked,correctId){
-  if(ls.answered)return;ls.answered=true;
+  if(ls.answered)return;ls.answered=true;bumpQ();
   const c=ls.list[ls.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
   document.querySelectorAll('.choice').forEach(b=>{const id=b.dataset.id;
     if(id===correctId)b.classList.add('correct');else if(id===picked)b.classList.add('wrong');else b.classList.add('dim');b.onclick=null;});
@@ -1249,7 +1251,7 @@ function checkLsDict(){
   if(ls.answered)return;
   const c=ls.list[ls.i],val=$('lsInput').value;
   if(!val.trim()){toast('聞こえた英語を入力してください');return;}
-  ls.answered=true;
+  ls.answered=true;bumpQ();
   const ok=norm(val)===norm(c.en),real=state.words.find(x=>x.id===c.id);
   const inp=$('lsInput');if(inp)inp.disabled=true;
   if(ok)lsCorrect(real);else lsWrong(c,real);
