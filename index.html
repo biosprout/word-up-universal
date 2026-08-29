@@ -322,7 +322,6 @@ async function boot(){
   for(const l of META.levels){ if(!LOADED[l.id]){ try{await ensureLevel(l.id);}catch(e){} } }
   if(state.onboarded&&document.querySelector('.ring-card'))renderHome();
 }
-boot();
 function renderZukan(){
   const have=new Set(state.cards);
   const sec=(r,label)=>{
@@ -505,7 +504,9 @@ const $=id=>document.getElementById(id);
 const screen=$('screen');
 function isWeak(x){ return x.wrong>0 && x.correct<=x.wrong; }
 function weakWords(){ const ids=new Set(groupsOfLv().map(g=>g.id)); return state.words.filter(x=>isWeak(x)&&(curLevel==='all'||ids.has(x.groupId))); }
-function groupsOfLv(){ return state.groups.filter(g=>curLevel==='all'||g.lv===curLevel||g.lv==='my'); }
+function groupsOfLv(){ const a=state.groups.filter(g=>(curLevel==='all'||g.lv===curLevel)&&g.lv!=='my');
+  const b=state.groups.filter(g=>g.lv==='my');
+  return curLevel==='my'?b:a.concat(b); }
 function lvWords(){ const ids=new Set(groupsOfLv().map(g=>g.id)); return state.words.filter(x=>ids.has(x.groupId)); }
 function wordsOf(g){ if(g==='all')return lvWords(); if(g==='review')return weakWords(); return state.words.filter(x=>x.groupId===g); }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
@@ -536,7 +537,7 @@ function renderHome(){
   const lvChips=[{id:'all',name:'すべて'}].concat(LEVELS).map(l=>
     `<div class="lv-chip ${curLevel===l.id?'on':''}" onclick="setLevel('${l.id}')">${esc(l.name)}</div>`).join('');
   const chips=weakChip+[{id:'all',name:'全部'}].concat(groupsOfLv()).map(g=>{
-    const c=g.id==='all'?state.words.length:wordsOf(g.id).length;
+    const c=wordsOf(g.id).length;
     return `<div class="grp-chip ${currentGroup===g.id?'on':''}" onclick="selectGroup('${g.id}')">${esc(g.name)}<small>${c}語</small></div>`;
   }).join('');
   screen.innerHTML=`
@@ -1146,7 +1147,7 @@ function renderOnboard(){
     <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:10px">
       <div style="font-size:40px">📚</div>
       <h2 style="font-size:19px;font-weight:900">WORD UP! へようこそ</h2>
-      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">中学の基本から準1級レベルまで 1364語。<br>まず、今のレベルをえらんでね。</p>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">中学の基本から準1級レベルまで ${META?META.total.toLocaleString():""}語。<br>まず、今のレベルを選んでください。</p>
     </div>
     <div class="section-label">🎓 今のレベル</div>
     <div class="ob-grid">
@@ -1173,6 +1174,9 @@ function obDone(){
   state.onboarded=true;save();
   toast('準備完了！今日も一歩 🎉');renderHome();
 }
+
+/* 起動（全ての定義の後で実行する） */
+boot();
 </script>
 </body>
 </html>
