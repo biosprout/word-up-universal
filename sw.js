@@ -1,6 +1,6 @@
 // WORD UP! Service Worker
 // 一度読み込んだファイルをキャッシュし、オフラインでも動くようにする
-const CACHE = 'wordup-v1';
+const CACHE = 'wordup-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -37,14 +37,29 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
-  if (new URL(req.url).origin !== location.origin) return;   // フォントなど外部は素通し
+  const url = new URL(req.url);
+  if (url.origin !== location.origin) return;   // フォントなど外部は素通し
+
+  // HTML（アプリ本体）は毎回ネットワークを見に行き、失敗したときだけキャッシュを使う。
+  // これにより更新が確実に届く。データやアイコンはキャッシュ優先で速く出す。
+  const isDoc = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/');
+  if (isDoc) {
+    e.respondWith(
+      fetch(req, { cache: 'no-store' })
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
   e.respondWith(
-    fetch(req)
-      .then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
-        return res;
-      })
-      .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+    caches.match(req).then(hit => hit || fetch(req).then(res => {
+      const copy = res.clone();
+      caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
+      return res;
+    }))
   );
 });

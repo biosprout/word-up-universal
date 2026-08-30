@@ -238,6 +238,10 @@
     <div class="brand" onclick="renderHelp()" style="cursor:pointer"><div class="logo">WORD <span>UP!</span></div><div class="sub" id="brandSub">中学〜準1級レベル</div></div>
     <div class="grp-pill" id="grpPill">全部</div>
   </div>
+  <div id="updBar" style="display:none;align-items:center;gap:10px;background:var(--accent);color:#3A1B00;padding:10px 14px;border-radius:12px;margin:0 0 12px;font-size:13px;font-weight:800">
+    <b style="flex:1">新しいバージョンがあります</b>
+    <button onclick="forceUpdate()" style="background:#3A1B00;color:var(--accent);border:0;border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px">更新する</button>
+  </div>
   <div class="screen" id="screen"></div>
 </div>
 <div class="toast" id="toast"></div>
@@ -443,6 +447,7 @@ function renderHelp(){
       '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>'+'<p>「保存」タブから、自分で登録した単語をテキストとして書き出せます。メモ帳やメールに貼って保管しておけば、機種変更やデータ消去のときに読み込んで復元できます。</p>')}
 
     ${sec('7. よくある質問',
+      '<p><b>アプリを新しくしたい</b><br>ホーム画面の下のほうにある「🔄 更新を確認」を押すと、新しいバージョンがあるか調べます。あれば画面の上に案内が出るので「更新する」を押してください。</p>'+
       '<p><b>ホーム画面に置きたい</b><br>iPhone は Safari で開き、共有ボタンから「ホーム画面に追加」を選びます。Android は Chrome のメニューから「アプリをインストール」または「ホーム画面に追加」を選びます。アイコンから開くとアドレスバーのない全画面で使えます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
       '<p><b>音が出ません</b><br>端末の音量と、iPhoneの場合は消音（マナー）スイッチを確認してください。音声は端末に内蔵された読み上げ機能を使っています。</p>'+
@@ -847,6 +852,8 @@ function renderHome(){
       <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
     </div>
     <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
+    <button class="btn btn-ghost" style="margin-top:12px;font-size:12px;padding:11px" onclick="checkUpdate(false)">🔄 更新を確認</button>
+    <p class="help" style="text-align:center;margin-top:8px;opacity:.6">バージョン ${APP_VER}</p>
     <div class="section-label" style="margin-top:16px">🏅 実績（${ACH.filter(a=>state.ach.includes(a.id)).length}/${ACH.length}）</div>
     <div class="ach-grid">
       ${ACH.map(a=>{const got=state.ach.includes(a.id);
@@ -1526,6 +1533,39 @@ function obDone(){
   toast('準備完了 🎉 まずは使い方ガイドをどうぞ');renderHelp();
 }
 
+const APP_VER='20260830a';
+
+/* 更新の確認と適用 */
+async function forceUpdate(){
+  try{
+    // Service Worker とキャッシュを破棄してから読み直す
+    if('serviceWorker' in navigator){
+      const rs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r=>r.unregister()));
+    }
+    if(window.caches){
+      const ks=await caches.keys();
+      await Promise.all(ks.map(k=>caches.delete(k)));
+    }
+  }catch(e){}
+  location.replace(location.origin+location.pathname+'?v='+Date.now());
+}
+async function checkUpdate(silent){
+  try{
+    // Service Worker を迂回して直接取りに行く
+    const r=await fetch(location.origin+location.pathname+'?c='+Date.now(),{cache:'no-store'});
+    const t=await r.text();
+    const m=t.match(/const APP_VER='([^']+)'/);
+    if(m&&m[1]!==APP_VER){
+      const bar=document.getElementById('updBar');
+      if(bar){bar.style.display='flex';bar.querySelector('b').textContent='新しいバージョン '+m[1]+' があります';}
+      return true;
+    }
+    if(!silent)toast('最新版です（'+APP_VER+'）');
+    return false;
+  }catch(e){ if(!silent)toast('確認できませんでした'); return false; }
+}
+
 /* Service Worker の登録（オフライン対応） */
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
@@ -1533,6 +1573,7 @@ if('serviceWorker' in navigator){
 
 /* 起動（全ての定義の後で実行する） */
 boot();
+setTimeout(()=>checkUpdate(true),2500);
 </script>
 </body>
 </html>
