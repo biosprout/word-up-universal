@@ -77,6 +77,14 @@
   .mode.game .ic{background:#DEF7F0}
   .mode.spell .ic{background:#E3F0FF}
   .mode.listen .ic{background:#FFF3D6}
+  .a2h>div{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:13px 15px;margin-bottom:8px}
+  .a2h span{flex:0 0 auto;width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-family:Poppins;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .a2h p{font-size:13px;line-height:1.6;margin:1px 0 0}
+  .ob-feat{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+  .ob-feat>div{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 12px}
+  .ob-feat span{font-size:18px;display:block;margin-bottom:4px}
+  .ob-feat b{display:block;font-size:12.5px;font-weight:800;line-height:1.4}
+  .ob-feat i{display:block;font-style:normal;font-size:10.5px;color:var(--sub);font-weight:600;line-height:1.5;margin-top:3px}
   .ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .ob-item{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:16px;text-align:center;font-weight:800;font-size:15px;cursor:pointer;transition:.15s}
   .ob-item:active{transform:scale(.97);border-color:var(--primary)}
@@ -448,7 +456,7 @@ function renderHelp(){
 
     ${sec('7. よくある質問',
       '<p><b>アプリを新しくしたい</b><br>ホーム画面の下のほうにある「🔄 更新を確認」を押すと、新しいバージョンがあるか調べます。あれば画面の上に案内が出るので「更新する」を押してください。</p>'+
-      '<p><b>ホーム画面に置きたい</b><br>iPhone は Safari で開き、共有ボタンから「ホーム画面に追加」を選びます。Android は Chrome のメニューから「アプリをインストール」または「ホーム画面に追加」を選びます。アイコンから開くとアドレスバーのない全画面で使えます。</p>'+
+      '<p><b>ホーム画面に置きたい</b><br>お使いの端末に合わせた手順を <a href="#" onclick="renderAddHome();return false" style="color:var(--primary);font-weight:800">こちらで表示</a> します。アイコンから開くとアドレスバーのない全画面で使えて、電波がなくても動きます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
       '<p><b>音が出ません</b><br>端末の音量と、iPhoneの場合は消音（マナー）スイッチを確認してください。音声は端末に内蔵された読み上げ機能を使っています。</p>'+
       '<p><b>別の端末や、ホーム画面のアプリに引き継ぎたい</b><br>「単語を増やす → 保存 → 📦 まるごと引っ越し」でコピーし、引き継ぎ先の同じ画面に貼り付けて「まるごと読み込む」を押します。XP・レベル・称号・実績・図鑑・ごほうび券・自分の単語がすべて移ります。</p>'+
@@ -1572,17 +1580,34 @@ function delGroup(id){
 function delWord(id){ state.words=state.words.filter(x=>x.id!==id); save(); renderMngBody(); }
 
 function renderOnboard(){
+  const n=META?META.total.toLocaleString():'';
   screen.innerHTML=`
-    <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:10px">
-      <div style="font-size:40px">📚</div>
-      <h2 style="font-size:19px;font-weight:900">WORD UP! へようこそ</h2>
-      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">中学の基本から準1級レベルまで ${META?META.total.toLocaleString():""}語。<br>まず、今のレベルを選んでください。</p>
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:10px;margin-top:6px;padding:26px 20px">
+      <div style="font-size:44px">📚</div>
+      <h2 style="font-size:21px;font-weight:900;line-height:1.4">中学から英検準1級まで<br>${n}語をひとつで</h2>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.8;margin-top:2px">
+        6段階のレベルから選んで、フラッシュカード・クイズ・書き取り・リスニングなど<br>6つの方法で覚えられます。</p>
     </div>
-    <div class="section-label">🎓 今のレベル</div>
+    <div class="ob-feat">
+      <div><span>🚫</span><b>広告なし</b><i>表示も課金もありません</i></div>
+      <div><span>🔓</span><b>登録不要</b><i>アカウントもメールも不要</i></div>
+      <div><span>🔒</span><b>データを集めません</b><i>記録は端末の中だけ</i></div>
+      <div><span>📶</span><b>オフラインOK</b><i>一度開けば電波がなくても</i></div>
+    </div>
+    <button class="btn btn-primary" style="margin-top:16px" onclick="obStart()">はじめる ›</button>
+    <p class="help" style="text-align:center;margin-top:10px">無料で、これからも無料です。</p>`;
+}
+function obStart(){
+  screen.innerHTML=`
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:6px">
+      <div style="font-size:36px">🎓</div>
+      <h2 style="font-size:19px;font-weight:900">今のレベルを選んでください</h2>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.7">選んだレベルの単語から出題されます。<br>あとからいつでも変えられます。</p>
+    </div>
     <div class="ob-grid">
       ${LEVELS.filter(l=>l.id!=='my').map(l=>`<div class="ob-item" onclick="obPick('${l.id}')">${esc(l.name)}</div>`).join('')}
     </div>
-    <p class="help">あとからいつでも変更できます。ほかのレベルの単語も使えます。</p>`;
+    <p class="help">ほかのレベルの単語も、あとから使えます。</p>`;
 }
 function obPick(l){
   state.level=l;curLevel=l;save();
@@ -1597,14 +1622,43 @@ function obPick(l){
     <button class="btn btn-primary" onclick="obDone()">始める ›</button>
     <p class="help">あとから「🎟 ごほうび券」の画面で変更できます。</p>`;
 }
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
+function isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent); }
+function renderAddHome(skipable){
+  const ios=isIOS();
+  const steps = ios
+    ? ['画面の下にある <b>共有ボタン</b>（□に↑のマーク）を押す',
+       'メニューを下にたどって <b>「ホーム画面に追加」</b> を選ぶ',
+       '右上の <b>「追加」</b> を押す']
+    : ['右上の <b>⋮</b>（メニュー）を押す',
+       '<b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b> を選ぶ',
+       '確認画面で <b>「インストール」</b> を押す'];
+  screen.innerHTML=`
+    <div class="ring-card" style="flex-direction:column;text-align:center;gap:8px;margin-top:6px">
+      <div style="font-size:36px">📲</div>
+      <h2 style="font-size:19px;font-weight:900">ホーム画面に置きましょう</h2>
+      <p style="font-size:13px;color:var(--sub);font-weight:600;line-height:1.8">
+        アイコンから開くと全画面で使えて、電波がなくても動きます。${ios?'<br><b style="color:var(--primary)">iPhone では、あとから追加すると記録が引き継がれません。今のうちに追加するのがおすすめです。</b>':''}</p>
+    </div>
+    <div class="section-label">${ios?'📱 iPhone / iPad での手順':'🤖 Android での手順'}</div>
+    <div class="a2h">
+      ${steps.map((t,i)=>`<div><span>${i+1}</span><p>${t}</p></div>`).join('')}
+    </div>
+    <button class="btn btn-primary" style="margin-top:14px" onclick="afterAddHome()">追加した／あとでやる ›</button>
+    <p class="help" style="text-align:center;margin-top:8px">この案内は「❓ 使い方ガイド」からいつでも見られます。</p>`;
+}
+function afterAddHome(){ renderHelp(); }
 function obDone(){
   const v=$('obTicket').value.trim();
   if(v)state.ticketLabel=v;
   state.onboarded=true;save();
-  toast('準備完了 🎉 まずは使い方ガイドをどうぞ');renderHelp();
+  toast('準備完了 🎉');
+  if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260830b';
+const APP_VER='20260830c';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
