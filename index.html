@@ -103,7 +103,9 @@
   .hsec p:last-child{margin-bottom:0}
   .hlist{margin:0 0 8px 18px;padding:0}
   .hlist li{font-size:13px;line-height:1.7;margin-bottom:4px}
+  .hnote{font-size:11px!important;color:var(--sub);line-height:1.7!important;border-left:2px solid var(--border);padding-left:10px;margin-top:10px}
   .hpre{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-family:Poppins,monospace;font-size:12px;line-height:1.8;white-space:pre-wrap;margin-bottom:8px}
+  .hpre.lic{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:9.5px;line-height:1.65;white-space:pre;overflow-x:auto}
   .zkr{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px;opacity:.5}
   .zkr.got{opacity:1}
   .zke{font-size:24px;flex:0 0 auto}
@@ -440,6 +442,12 @@ function renderHelp(){
     ${sec('8. 保護者の方へ',
       '<p>広告・課金・アカウント登録・データ収集は一切ありません。オフラインでも一度読み込めば動作します。</p>'+
       '<p>ごほうび券は、テストの点数などの「結果」ではなく、学習の積み重ね（XP）に連動するよう設計しています。券の内容と使い方のルールは、お子さんと一緒に決めることをおすすめします。</p>')}
+
+    ${sec('9. ライセンス',
+      '<p>このアプリは <b>Beerware ライセンス</b>（改訂第42版）で公開しています。自由にコピー・改変・再配布して構いません。</p>'+
+      '<pre class="hpre lic">/*\n * ------------------------------------------\n * "THE BEER-WARE LICENSE" (Revision 42):\n * Yuichi Tanaka wrote this file. As long as you retain this notice you\n * can do whatever you want with this stuff. If we meet some day, and you\n * think this stuff is worth it, you can buy me a beer in return.\n * ------------------------------------------\n */</pre>'+
+      '<p>日本語にすると「この注意書きを残しておいてくれるなら、あとは何をしてもらってもかまいません。いつか会うことがあって、これに価値があると思ったら、お礼にビールをおごってください」という意味です。</p>'+
+      '<p class="hnote">Beerware は 1990 年代に FreeBSD の開発者 Poul-Henning Kamp が作った、実在する冗談まじりのライセンスです。ソフトウェアには「どう使ってよいか」を決めるライセンスが必ずあり、こういう自由なものから、厳しく制限するものまでいろいろあります。</p>')}
 
     <button class="btn btn-primary" style="margin-top:6px" onclick="renderHome()">ホームに戻る</button>`;
 }
