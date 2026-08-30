@@ -130,6 +130,7 @@
   .zkn{font-size:13px;font-weight:900;font-family:'Poppins',sans-serif}
   .zkd{font-size:11px;color:var(--sub);font-weight:600;line-height:1.6;margin-top:4px}
   .zktag{font-size:8px;padding:2px 7px;border-radius:6px;font-weight:800;vertical-align:2px;font-family:'Noto Sans JP'}
+  .dupn{font-family:Poppins;font-size:10px;font-weight:800;color:var(--accent);margin-left:2px}
   .zktag.N{background:#EEF1F4;color:#8A94A0}
   .zktag.R{background:#E3F0FF;color:#2E7BC4}
   .zktag.SR{background:#FFF1DC;color:#C9702F}
@@ -303,7 +304,7 @@ function save(){
     });
     state.progress=Object.assign({},state.progress,pr);
     state.myWords=state.words.filter(x=>x.own);
-    const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,best:state.best,
+    const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
       onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
       stat:state.stat};
@@ -477,19 +478,19 @@ function renderHelp(){
     <button class="btn btn-primary" style="margin-top:6px" onclick="renderHome()">ホームに戻る</button>`;
 }
 function renderZukan(){
-  const have=new Set(state.cards);
+  const have=new Set(CARDS.filter(c=>(state.cardCount||{})[c.id]>0).map(c=>c.id));
   const norm=cardsNormal();
   const got=norm.filter(c=>have.has(c.id)).length;
   const sec=(r,label)=>{
     const cs=CARDS.filter(c=>c.r===r);
     return `<div class="section-label">${label}（${cs.filter(c=>have.has(c.id)).length}/${cs.length}）</div>`+
       cs.map(c=>have.has(c.id)
-        ?`<div class="zkr got"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)} <span class="zktag ${c.r}">${c.r==='SR'?'超レア':c.r==='R'?'レア':'ふつう'}</span></div><div class="zkd">${esc(c.d)}</div></div></div>`
+        ?`<div class="zkr got"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)}${(state.cardCount&&state.cardCount[c.id]>1)?` <span class="dupn">×${state.cardCount[c.id]}</span>`:''} <span class="zktag ${c.r}">${c.r==='SR'?'超レア':c.r==='R'?'レア':'ふつう'}</span></div><div class="zkd">${esc(c.d)}</div></div></div>`
         :`<div class="zkr"><span class="zke">🔒</span><div class="zkb"><div class="zkn" style="color:var(--sub)">？？？</div><div class="zkd">レベルアップ・実績解除・5日連続学習で手に入る</div></div></div>`).join('');
   };
-  const hid=CARDS.filter(c=>c.r==='H'&&have.has(c.id));
+  const hid=CARDS.filter(c=>c.r==='H'&&(state.cardCount||{})[c.id]>0);
   const hidSec=hid.length?`<div class="section-label">🔮 隠し図鑑（${hid.length}）</div>`+
-    hid.map(c=>`<div class="zkr got" style="border-color:#7B6BD9;background:#F4F2FF"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)} <span class="zktag H">隠し</span></div><div class="zkd">${esc(c.d)}</div></div></div>`).join(''):'';
+    hid.map(c=>`<div class="zkr got" style="border-color:#7B6BD9;background:#F4F2FF"><span class="zke">${c.e}</span><div class="zkb"><div class="zkn">${esc(c.n)}${(state.cardCount&&state.cardCount[c.id]>1)?` <span class="dupn">×${state.cardCount[c.id]}</span>`:''} <span class="zktag H">隠し</span></div><div class="zkd">${esc(c.d)}</div></div></div>`).join(''):'';
   screen.innerHTML=`
     <button class="back" onclick="renderHome()">‹ 戻る</button>
     <div class="mode-head"><h2>📖 ことばの図鑑</h2><span class="quiz-score">${got}/${norm.length}</span></div>
@@ -657,22 +658,40 @@ const CARDS=[
  {id:'flocci',r:'H',e:'🪶',n:'floccinaucinihilipilification',d:'29文字。「何かを無価値と見積もること」を意味し、技術用語を除く英語で最も長い部類の語として辞書に載っている'},
 ];
 function grantCard(){
-  const have=new Set(state.cards||[]);
-  const hid=CARDS.filter(c=>c.r==='H'&&!have.has(c.id));
-  if(hid.length&&Math.random()<0.03){
-    const pick=hid[Math.floor(Math.random()*hid.length)];
-    state.cards.push(pick.id);save();
-    setTimeout(()=>{toast('🔮 隠し図鑑を発見！ '+pick.e+' '+pick.n);pop();},1700);
+  const cnt=state.cardCount||(state.cardCount={});
+  const owned=id=>(cnt[id]||0)>0;
+  // 未所持は重み3倍。重複も出るが新規が出やすい
+  const W={N:6,R:3,SR:1,H:0};
+  const build=arr=>{
+    let tot=0; const w=arr.map(c=>{const v=(W[c.r]||1)*(owned(c.id)?1:3); tot+=v; return v;});
+    return {arr,w,tot};
+  };
+  const draw=pool=>{
+    const {arr,w,tot}=build(pool);
+    let x=Math.random()*tot;
+    for(let i=0;i<arr.length;i++){x-=w[i];if(x<=0)return arr[i];}
+    return arr[arr.length-1];
+  };
+  const give=(c,isHidden)=>{
+    cnt[c.id]=(cnt[c.id]||0)+1;
+    if(!state.cards.includes(c.id))state.cards.push(c.id);
+    save();
+    const dup=cnt[c.id]>1;
+    const msg=isHidden
+      ? '🔮 隠し図鑑を発見！ '+c.e+' '+c.n+(dup?'（重複 ×'+cnt[c.id]+'）':'')
+      : '🔮 隠し図鑑を発見！ '+c.e+' '+c.n+(dup?'（重複 ×'+cnt[c.id]+'）':(c.r==='SR'?'（超レア！）':c.r==='R'?'（レア）':''));
+    setTimeout(()=>{toast(msg);pop(dup?6:10);},1400);
+  };
+  const hid=CARDS.filter(c=>c.r==='H');
+  const newHid=hid.filter(c=>!owned(c.id));
+  if(hid.length&&Math.random()<0.04){
+    give(newHid.length?newHid[Math.floor(Math.random()*newHid.length)]
+                      :hid[Math.floor(Math.random()*hid.length)],true);
     return;
   }
-  const pool=CARDS.filter(c=>c.r!=='H'&&!have.has(c.id));
+  const pool=CARDS.filter(c=>c.r!=='H');
   if(!pool.length)return;
-  const W={N:6,R:3,SR:1};
-  let tot=0;pool.forEach(c=>tot+=W[c.r]);
-  let x=Math.random()*tot,pick=pool[0];
-  for(const c of pool){x-=W[c.r];if(x<=0){pick=c;break;}}
-  state.cards.push(pick.id);save();
-  setTimeout(()=>{toast('📖 ことばの図鑑に追加: '+pick.e+' '+pick.n+(pick.r==='SR'?'（超レア！）':pick.r==='R'?'（レア）':''));pop();},1700);
+  give(draw(pool),false);
 }
 function cardsNormal(){return CARDS.filter(c=>c.r!=='H');}
 function cardsFound(r){return CARDS.filter(c=>c.r===r&&state.cards.includes(c.id)).length;}
@@ -685,6 +704,10 @@ function lvlInfo(xp){
   return{level:l,cur:xp-acc,need};
 }
 if(!state.cards)state.cards=[];
+if(!state.cardCount){
+  state.cardCount={};
+  (state.cards||[]).forEach(id=>{state.cardCount[id]=(state.cardCount[id]||0)+1;});
+}
 if(!state.stat)state.stat={day:'',dayQ:0,totalQ:0,speak:0,modes:[],lvPlayed:[],maxWrong:0,peakWeak:0};
 function bumpQ(){
   const t=todayStr();
@@ -744,10 +767,10 @@ function checkAch(){
   if((state.best.ls_choice||0)>=10)unlock('listen10');
   if((state.best.ls_dict||0)>=10)unlock('dict10');
   [[100,'q100'],[500,'q500'],[2000,'q2000']].forEach(([n,id])=>{if(st.totalQ>=n)unlock(id);});
-  const cn=cardsNormal().filter(c=>state.cards.includes(c.id)).length;
+  const cn=cardsNormal().filter(c=>(state.cardCount||{})[c.id]>0).length;
   [[10,'cards10'],[30,'cards30']].forEach(([n,id])=>{if(cn>=n)unlock(id);});
   if(cn>=cardsNormal().length)unlock('cards64');
-  if(CARDS.some(c=>c.r==='H'&&state.cards.includes(c.id)))unlock('collector');
+  if(CARDS.some(c=>c.r==='H'&&(state.cardCount||{})[c.id]>0))unlock('collector');
   LEVELS.filter(l=>l.id!=='my').forEach(l=>{
     const w=lvStat(l.id);
     if(w.total>0&&w.learned>=w.total)unlock('lvclear');
@@ -837,7 +860,7 @@ function renderHome(){
       </div>
     </div>
     <button class="btn btn-ghost" style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center" onclick="renderTickets()"><span>🎟 ごほうび券</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${ticketsLeft()}枚</span></button>
-    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderZukan()"><span>📖 ことばの図鑑</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${cardsNormal().filter(c=>state.cards.includes(c.id)).length}/${cardsNormal().length}</span></button>
+    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderZukan()"><span>📖 ことばの図鑑</span><span style="font-family:Poppins;font-weight:800;color:var(--accent)">${cardsNormal().filter(c=>(state.cardCount||{})[c.id]>0).length}/${cardsNormal().length}</span></button>
     <div class="ring-card" style="display:block;padding:16px 18px">
       <h2 style="font-size:13px;font-weight:900;margin-bottom:10px">📊 レベル別の記録</h2>
       ${LEVELS.filter(l=>l.id!=='my').map(l=>{
@@ -1445,7 +1468,7 @@ function addBulk(){
 }
 function exportAll(){
   return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
-    xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,best:state.best,
+    xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
     streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
     progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat}});
 }
@@ -1658,7 +1681,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260830c';
+const APP_VER='20260830d';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
