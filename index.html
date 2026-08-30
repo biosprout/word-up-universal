@@ -431,12 +431,12 @@ function renderHelp(){
     ${sec('6. 自分の単語を追加する',
       '<p>「単語を増やす・編集する」から、教科書やテスト範囲の単語を登録できます。「まとめて」タブに次の形式で貼り付ければ、一度に登録できます。</p>'+
       '<pre class="hpre">apple りんご\nimportant 重要な\nachieve 達成する</pre>'+
-      '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>')}
+      '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>'+'<p>「保存」タブから、自分で登録した単語をテキストとして書き出せます。メモ帳やメールに貼って保管しておけば、機種変更やデータ消去のときに読み込んで復元できます。</p>')}
 
     ${sec('7. よくある質問',
       '<p><b>音が出ません</b><br>端末の音量と、iPhoneの場合は消音（マナー）スイッチを確認してください。音声は端末に内蔵された読み上げ機能を使っています。</p>'+
       '<p><b>別の端末で続きをやりたい</b><br>学習の記録はその端末のブラウザの中だけに保存されます。端末をまたいだ引き継ぎはできません。</p>'+
-      '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。ご注意ください。</p>'+
+      '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。自分で登録した単語は「単語を増やす → 保存」タブから書き出して保管できます。</p>'+
       '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
 
     ${sec('8. 保護者の方へ',
@@ -1305,6 +1305,7 @@ function renderManage(){
       <button class="${mngTab==='add'?'on':''}" onclick="mngSwitch('add')">1語ずつ</button>
       <button class="${mngTab==='bulk'?'on':''}" onclick="mngSwitch('bulk')">まとめて</button>
       <button class="${mngTab==='grp'?'on':''}" onclick="mngSwitch('grp')">グループ</button>
+      <button class="${mngTab==='io'?'on':''}" onclick="mngSwitch('io')">保存</button>
     </div>
     <div id="mngBody"></div>`;
   renderMngBody();
@@ -1333,6 +1334,24 @@ function renderMngBody(){
         <button class="btn btn-primary" onclick="addBulk()">まとめて追加</button>
       </div>
       <p class="help">教科書や単語帳を見ながら「英語 日本語」を改行で並べて貼り付ければ、一括登録できます。区切りはスペースでもカンマ(,)でも構いません。</p>`;
+  }else if(mngTab==='io'){
+    const mine=state.words.filter(x=>x.own);
+    body.innerHTML=`
+      <div class="add-box">
+        <div class="field"><label>自分で追加した単語（${mine.length}語）</label>
+          <textarea id="ioText" readonly style="min-height:150px">${esc(exportMy())}</textarea></div>
+        <div class="row2">
+          <button class="btn btn-primary" onclick="copyMy()">📋 コピー</button>
+          <button class="btn btn-ghost" onclick="downloadMy()">💾 ファイルに保存</button>
+        </div>
+      </div>
+      <p class="help" style="margin-bottom:14px">自分で登録した単語を書き出します。メモ帳やメールに貼って保管したり、別の端末で読み込んだりできます。グループ名は行頭の <b>#</b> で表されます。</p>
+      <div class="add-box">
+        <div class="field"><label>読み込み（上の形式で貼り付け）</label>
+          <textarea id="impText" placeholder="# マイ単語帳 1&#10;apple りんご&#10;dog 犬"></textarea></div>
+        <button class="btn btn-accent" onclick="importMy()">読み込む</button>
+      </div>
+      <p class="help">すでにある単語は重複して追加されません。グループがなければ自動で作られます。</p>`;
   }else if(mngTab==='grp'){
     body.innerHTML=`
       <div class="add-box">
@@ -1377,6 +1396,71 @@ function addBulk(){
   });
   save(); toast(n?`${n}語 追加したよ 🎉`:'うまく読めなかったみたい');
   if(n){mngTab='list';currentGroup=g;renderManage();}
+}
+function exportMy(){
+  const mine=state.words.filter(x=>x.own);
+  if(!mine.length)return '（まだ自分で追加した単語はありません）';
+  const byG={};
+  mine.forEach(x=>{(byG[x.groupId]=byG[x.groupId]||[]).push(x);});
+  let out=[];
+  Object.keys(byG).forEach(gid=>{
+    const g=state.groups.find(y=>y.id===gid);
+    out.push('# '+(g?g.name:gid));
+    byG[gid].forEach(x=>out.push(x.en+' '+x.ja));
+    out.push('');
+  });
+  return out.join('\n').trim();
+}
+function copyMy(){
+  const t=exportMy();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('コピーしました ✓')).catch(()=>fallbackCopy(t));
+  }else fallbackCopy(t);
+}
+function fallbackCopy(t){
+  const el=$('ioText'); if(!el){toast('コピーできませんでした');return;}
+  el.removeAttribute('readonly'); el.select(); el.setSelectionRange(0,999999);
+  try{ document.execCommand('copy'); toast('コピーしました ✓'); }
+  catch(e){ toast('長押しして手動でコピーしてください'); }
+  el.setAttribute('readonly','');
+}
+function downloadMy(){
+  try{
+    const blob=new Blob([exportMy()],{type:'text/plain;charset=utf-8'});
+    const a=document.createElement('a');
+    const d=new Date();
+    a.href=URL.createObjectURL(blob);
+    a.download='wordup-mywords-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.txt';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+    toast('ファイルに保存しました ✓');
+  }catch(e){ toast('保存できませんでした。コピーをお使いください'); }
+}
+function importMy(){
+  const raw=($('impText')||{}).value||'';
+  if(!raw.trim()){toast('貼り付けてから読み込んでください');return;}
+  let gid='my1', added=0, skipped=0, madeG=0;
+  const has=new Set(state.words.map(x=>x.groupId+'|'+x.en.toLowerCase()));
+  raw.split('\n').forEach(line=>{
+    line=line.trim(); if(!line)return;
+    if(line.startsWith('#')){
+      const name=line.slice(1).trim(); if(!name)return;
+      let g=state.groups.find(y=>y.name===name);
+      if(!g){ g={id:'g_'+Math.random().toString(36).slice(2,8),name,lv:'my'};
+        state.groups.push(g); state.myGroups.push(g); madeG++; }
+      gid=g.id; return;
+    }
+    const parts=line.split(/[,\s]+/);
+    if(parts.length<2)return;
+    const en=parts[0].trim(), ja=parts.slice(1).join(' ').trim();
+    if(!en||!ja)return;
+    const key=gid+'|'+en.toLowerCase();
+    if(has.has(key)){skipped++;return;}
+    has.add(key); state.words.push(w(en,ja,gid)); added++;
+  });
+  save();
+  toast(added+'語を追加'+(skipped?'（重複'+skipped+'語をスキップ）':'')+(madeG?' / グループ'+madeG+'個を作成':''));
+  renderManage();
 }
 function addGroup(){
   const name=$('grpName').value.trim();
