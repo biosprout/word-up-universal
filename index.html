@@ -451,7 +451,8 @@ function renderHelp(){
       '<p><b>ホーム画面に置きたい</b><br>iPhone は Safari で開き、共有ボタンから「ホーム画面に追加」を選びます。Android は Chrome のメニューから「アプリをインストール」または「ホーム画面に追加」を選びます。アイコンから開くとアドレスバーのない全画面で使えます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
       '<p><b>音が出ません</b><br>端末の音量と、iPhoneの場合は消音（マナー）スイッチを確認してください。音声は端末に内蔵された読み上げ機能を使っています。</p>'+
-      '<p><b>別の端末で続きをやりたい</b><br>学習の記録はその端末のブラウザの中だけに保存されます。端末をまたいだ引き継ぎはできません。</p>'+
+      '<p><b>別の端末や、ホーム画面のアプリに引き継ぎたい</b><br>「単語を増やす → 保存 → 📦 まるごと引っ越し」でコピーし、引き継ぎ先の同じ画面に貼り付けて「まるごと読み込む」を押します。XP・レベル・称号・実績・図鑑・ごほうび券・自分の単語がすべて移ります。</p>'+
+      '<p><b>Safari とホーム画面のアプリで記録が別々になっています</b><br>iPhone では、Safari で開いたときと、ホーム画面のアイコンから開いたときで保存場所が分かれます。上の「まるごと引っ越し」で片方からもう片方へ移し、以後はどちらか一方だけを使うのがおすすめです。</p>'+
       '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。自分で登録した単語は「単語を増やす → 保存」タブから書き出して保管できます。</p>'+
       '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
 
@@ -1354,20 +1355,39 @@ function renderMngBody(){
       <p class="help">教科書や単語帳を見ながら「英語 日本語」を改行で並べて貼り付ければ、一括登録できます。区切りはスペースでもカンマ(,)でも構いません。</p>`;
   }else if(mngTab==='io'){
     const mine=state.words.filter(x=>x.own);
+    const lv=lvlInfo(state.xp);
     body.innerHTML=`
+      <div class="section-label" style="margin-top:0">📦 まるごと引っ越し</div>
+      <div class="add-box">
+        <p class="help" style="margin:0 0 10px">学習の記録と自分の単語をまとめて移します。<b>Safariで使っていた記録を、ホーム画面のアプリに引き継ぐとき</b>はこちらを使ってください。</p>
+        <div class="field"><label>いまの記録（Lv.${lv.level} / ${state.xp.toLocaleString()} XP / 覚えた ${state.words.filter(x=>x.learned).length}語 / 自作 ${mine.length}語）</label>
+          <textarea id="allText" readonly style="min-height:110px;font-size:11px">${esc(exportAll())}</textarea></div>
+        <div class="row2">
+          <button class="btn btn-primary" onclick="copyAll()">📋 コピー</button>
+          <button class="btn btn-ghost" onclick="downloadAll()">💾 ファイルに保存</button>
+        </div>
+      </div>
+      <div class="add-box" style="margin-top:10px">
+        <div class="field"><label>引っ越し先で貼り付け</label>
+          <textarea id="allImp" placeholder="コピーした内容をここに貼り付け" style="min-height:90px;font-size:11px"></textarea></div>
+        <button class="btn btn-accent" onclick="importAll()">まるごと読み込む</button>
+      </div>
+      <p class="help" style="margin-bottom:18px">読み込むと、いまの記録は<b>置きかえられます</b>。XP・レベル・称号・実績・図鑑・ごほうび券・苦手・自作単語がすべて移ります。</p>
+
+      <div class="section-label">📝 自分の単語だけ</div>
       <div class="add-box">
         <div class="field"><label>自分で追加した単語（${mine.length}語）</label>
-          <textarea id="ioText" readonly style="min-height:150px">${esc(exportMy())}</textarea></div>
+          <textarea id="ioText" readonly style="min-height:120px">${esc(exportMy())}</textarea></div>
         <div class="row2">
           <button class="btn btn-primary" onclick="copyMy()">📋 コピー</button>
           <button class="btn btn-ghost" onclick="downloadMy()">💾 ファイルに保存</button>
         </div>
       </div>
-      <p class="help" style="margin-bottom:14px">自分で登録した単語を書き出します。メモ帳やメールに貼って保管したり、別の端末で読み込んだりできます。グループ名は行頭の <b>#</b> で表されます。</p>
+      <p class="help" style="margin-bottom:14px">単語だけをテキストで書き出します。メモ帳やメールに貼って保管できます。グループ名は行頭の <b>#</b> で表されます。</p>
       <div class="add-box">
         <div class="field"><label>読み込み（上の形式で貼り付け）</label>
           <textarea id="impText" placeholder="# マイ単語帳 1&#10;apple りんご&#10;dog 犬"></textarea></div>
-        <button class="btn btn-accent" onclick="importMy()">読み込む</button>
+        <button class="btn btn-ghost" onclick="importMy()">単語だけ読み込む</button>
       </div>
       <p class="help">すでにある単語は重複して追加されません。グループがなければ自動で作られます。</p>`;
   }else if(mngTab==='grp'){
@@ -1415,6 +1435,63 @@ function addBulk(){
   save(); toast(n?`${n}語 追加したよ 🎉`:'うまく読めなかったみたい');
   if(n){mngTab='list';currentGroup=g;renderManage();}
 }
+function exportAll(){
+  return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
+    xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,best:state.best,
+    streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
+    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat}});
+}
+function copyAll(){
+  const t=exportAll();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>toast('コピーしました ✓')).catch(()=>fbCopy('allText'));
+  }else fbCopy('allText');
+}
+function downloadAll(){
+  try{
+    const d=new Date();
+    const blob=new Blob([exportAll()],{type:'application/json;charset=utf-8'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='wordup-backup-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.json';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+    toast('ファイルに保存しました ✓');
+  }catch(e){ toast('保存できませんでした。コピーをお使いください'); }
+}
+function importAll(){
+  const raw=($('allImp')||{}).value||'';
+  if(!raw.trim()){toast('貼り付けてから読み込んでください');return;}
+  let o; try{ o=JSON.parse(raw.trim()); }catch(e){ toast('形式が正しくありません'); return; }
+  const d=o&&o.d?o.d:null;
+  if(!d){toast('記録が見つかりません');return;}
+  if(o.app&&o.app!=='wordup'){toast('WORD UP! の記録ではありません');return;}
+  if(!confirm('いまの記録を、貼り付けた内容で置きかえます。よろしいですか？'))return;
+  state.xp=d.xp||0; state.maxCombo=d.maxCombo||0;
+  state.ach=d.ach||[]; state.cards=d.cards||[]; state.best=d.best||{};
+  state.streak=d.streak||{day:'',count:0};
+  state.tickets=d.tickets||{earned:0,used:[]};
+  if(d.ticketLabel)state.ticketLabel=d.ticketLabel;
+  state.progress=d.progress||{};
+  state.myGroups=d.myGroups||[];
+  if(d.stat)state.stat=d.stat;
+  if(d.level)state.level=d.level;
+  // 自作の単語とグループを、いま動いているリストにも反映してから保存する
+  state.words=state.words.filter(x=>!x.own);
+  state.groups=state.groups.filter(g=>g.lv!=='my'||g.id==='my1'||g.id==='my2');
+  state.myGroups.forEach(g=>{ if(!state.groups.some(y=>y.id===g.id))state.groups.push(g); });
+  (d.myWords||[]).forEach(x=>state.words.push(x));
+  save();
+  toast('記録を引き継ぎました ✓ 読み込み直します');
+  setTimeout(()=>location.replace(location.origin+location.pathname),900);
+}
+function fbCopy(id){
+  const el=$(id); if(!el){toast('コピーできませんでした');return;}
+  el.removeAttribute('readonly'); el.select(); el.setSelectionRange(0,999999);
+  try{ document.execCommand('copy'); toast('コピーしました ✓'); }
+  catch(e){ toast('長押しして手動でコピーしてください'); }
+  el.setAttribute('readonly','');
+}
 function exportMy(){
   const mine=state.words.filter(x=>x.own);
   if(!mine.length)return '（まだ自分で追加した単語はありません）';
@@ -1435,13 +1512,7 @@ function copyMy(){
     navigator.clipboard.writeText(t).then(()=>toast('コピーしました ✓')).catch(()=>fallbackCopy(t));
   }else fallbackCopy(t);
 }
-function fallbackCopy(t){
-  const el=$('ioText'); if(!el){toast('コピーできませんでした');return;}
-  el.removeAttribute('readonly'); el.select(); el.setSelectionRange(0,999999);
-  try{ document.execCommand('copy'); toast('コピーしました ✓'); }
-  catch(e){ toast('長押しして手動でコピーしてください'); }
-  el.setAttribute('readonly','');
-}
+function fallbackCopy(t){ fbCopy('ioText'); }
 function downloadMy(){
   try{
     const blob=new Blob([exportMy()],{type:'text/plain;charset=utf-8'});
@@ -1533,7 +1604,7 @@ function obDone(){
   toast('準備完了 🎉 まずは使い方ガイドをどうぞ');renderHelp();
 }
 
-const APP_VER='20260830a';
+const APP_VER='20260830b';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
