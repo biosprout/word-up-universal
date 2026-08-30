@@ -1,6 +1,6 @@
 // WORD UP! Service Worker
 // 一度読み込んだファイルをキャッシュし、オフラインでも動くようにする
-const CACHE = 'wordup-v5';
+const CACHE = 'wordup-v7';
 const ASSETS = [
   './',
   './index.html',

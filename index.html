@@ -679,7 +679,7 @@ function grantCard(){
     const dup=cnt[c.id]>1;
     const msg=isHidden
       ? '🔮 隠し図鑑を発見！ '+c.e+' '+c.n+(dup?'（重複 ×'+cnt[c.id]+'）':'')
-      : '🔮 隠し図鑑を発見！ '+c.e+' '+c.n+(dup?'（重複 ×'+cnt[c.id]+'）':(c.r==='SR'?'（超レア！）':c.r==='R'?'（レア）':''));
+      : '📖 ことばの図鑑に追加: '+c.e+' '+c.n+(dup?'（重複 ×'+cnt[c.id]+'）':(c.r==='SR'?'（超レア！）':c.r==='R'?'（レア）':''));
     setTimeout(()=>{toast(msg);pop(dup?6:10);},1400);
   };
   const hid=CARDS.filter(c=>c.r==='H');
@@ -852,8 +852,8 @@ function renderHome(){
     <div class="ring-card" style="padding:16px 20px;gap:14px">
       <div style="flex:1">
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-          <span style="font-family:Poppins;font-weight:800;font-size:18px;color:var(--primary)">Lv.${lvlInfo(state.xp).level}</span> <span onclick="renderTitles()" style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(0,0,0,.15)">${titleOf(lvlInfo(state.xp).level).e} ${titleOf(lvlInfo(state.xp).level).n} ›</span>
-          <span style="font-size:11px;color:var(--sub);font-weight:700">${state.streak.count>=2?'🔥 '+state.streak.count+'日連続':'今日も1問から'}</span>
+          <span style="font-family:Poppins;font-weight:800;font-size:18px;color:var(--primary)">Lv.${lvlInfo(state.xp).level}</span> <span style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.2px">${titleOf(lvlInfo(state.xp).level).e} ${titleOf(lvlInfo(state.xp).level).n}</span>
+          <span onclick="renderTitles()" style="font-size:11px;color:var(--sub);font-weight:700;cursor:pointer">${state.streak.count>=2?'🔥 '+state.streak.count+'日連続　':''}<span style="color:var(--accent)">称号の記録 ›</span></span>
         </div>
         <div class="progress-line" style="margin:0 0 4px"><i style="width:${lvlInfo(state.xp).max?100:lvlInfo(state.xp).cur/lvlInfo(state.xp).need*100}%"></i></div>
         <div style="font-size:10px;color:var(--sub);font-weight:700;text-align:right">${lvlInfo(state.xp).max?'最高レベル到達！ 累計 '+state.xp.toLocaleString()+' XP':'あと '+(lvlInfo(state.xp).need-lvlInfo(state.xp).cur).toLocaleString()+' XP でレベルアップ'}</div>
@@ -884,8 +884,6 @@ function renderHome(){
       <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
     </div>
     <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
-    <button class="btn btn-ghost" style="margin-top:12px;font-size:12px;padding:11px" onclick="checkUpdate(false)">🔄 更新を確認</button>
-    <p class="help" style="text-align:center;margin-top:8px;opacity:.6">バージョン ${APP_VER}</p>
     <div class="section-label" style="margin-top:16px">🏅 実績（${ACH.filter(a=>state.ach.includes(a.id)).length}/${ACH.length}）</div>
     <div class="ach-grid">
       ${ACH.map(a=>{const got=state.ach.includes(a.id);
@@ -894,6 +892,11 @@ function renderHome(){
     ${(()=>{const f=ACH_SECRET.filter(a=>state.ach.includes(a.id));
       return f.length?`<div class="section-label">🕵️ 隠し実績（${f.length}）</div><div class="ach-grid">${
         f.map(a=>`<div class="achb got" style="border-color:#7B6BD9;background:#F4F2FF"><div class="an">🕵️ ${a.name}</div><div class="ad">${a.desc}</div></div>`).join('')}</div>`:'';})()}
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="checkUpdate(false)">🔄 更新を確認</button>
+      <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="openSaveTab()">💾 記録の保存</button>
+    </div>
+    <p class="help" style="text-align:center;margin-top:8px;opacity:.6">バージョン ${APP_VER}</p>
     <div class="manage-btn" onclick="renderManage()">
       <div class="ic">➕</div>
       <div><h3>単語を増やす・編集する</h3><p>教科書に合わせて登録／Unitグループに追加</p></div>
@@ -1346,6 +1349,7 @@ function renderLsResult(){
 
 /* 単語管理 */
 let mngTab='list';
+function openSaveTab(){ mngTab='io'; renderManage(); }
 function renderManage(){
   screen.innerHTML=`
     <button class="back" onclick="renderHome()">‹ 戻る</button>
@@ -1681,7 +1685,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260830d';
+const APP_VER='20260830f';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
