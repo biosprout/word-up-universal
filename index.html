@@ -65,6 +65,19 @@
   .grp-chip.weak{border-color:var(--danger);color:var(--danger)}
   .grp-chip.weak.on{background:var(--danger);border-color:var(--danger);color:#fff}
   .grp-chip.weak.on small{color:rgba(255,255,255,.85)}
+  .daily{display:flex;align-items:center;gap:13px;border-radius:22px;padding:16px 18px;margin-bottom:16px;cursor:pointer;
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);color:#fff;box-shadow:var(--shadow);transition:.15s}
+  .daily:active{transform:scale(.985)}
+  .daily.done{background:linear-gradient(135deg,#12A98A 0%,#3BB273 100%)}
+  .daily .dic{width:44px;height:44px;border-radius:14px;background:rgba(255,255,255,.2);
+    display:flex;align-items:center;justify-content:center;font-size:23px;flex:0 0 auto}
+  .daily .dbd{flex:1;min-width:0}
+  .daily .dbd h3{font-size:16px;font-weight:900;letter-spacing:.2px;line-height:1.3}
+  .daily .dbd p{font-size:11px;font-weight:600;opacity:.88;margin-top:3px;line-height:1.45}
+  .daily .dbar{height:5px;border-radius:99px;background:rgba(255,255,255,.28);margin-top:8px;overflow:hidden}
+  .daily .dbar i{display:block;height:100%;background:#fff;border-radius:99px}
+  .daily .dgo{font-family:'Poppins';font-size:12px;font-weight:800;background:rgba(255,255,255,.22);
+    padding:9px 13px;border-radius:999px;flex:0 0 auto;white-space:nowrap}
   .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
   .mode{background:var(--panel);border-radius:20px;padding:20px 16px;cursor:pointer;
     box-shadow:var(--shadow-sm);border:1.5px solid transparent;transition:.15s;display:flex;flex-direction:column;gap:8px;}
@@ -270,7 +283,7 @@ const LEVELS=[];
 
 function load(){
   const base={xp:0,maxCombo:0,ach:[],cards:[],best:{},streak:{day:'',count:0},
-    progress:{},myWords:[],myGroups:[],words:[],groups:[],level:'m1',onboarded:false};
+    progress:{},myWords:[],myGroups:[],words:[],groups:[],level:'m1',onboarded:false,daily:null};
   try{
     const raw=localStorage.getItem(STORE_KEY);
     if(raw){
@@ -295,19 +308,26 @@ function load(){
 }
 function save(){
   try{
+    // 単語の読み込み前に save() が走ることがある。そのときは
+    // 空の state.words から進捗やマイ単語を作り直してしまわないようにする
+    if(state.words.length){
     const pr={};
     state.words.forEach(x=>{
       if(x.own)return;
-      const k=pkey(x.en),v=[x.correct|0,x.wrong|0,x.learned?1:0],o=pr[k];
-      if(!v[0]&&!v[1]&&!v[2])return;
-      pr[k]=o?[Math.max(o[0],v[0]),Math.max(o[1],v[1]),Math.max(o[2],v[2])]:v;
+      const k=pkey(x.en),v=[x.correct|0,x.wrong|0,x.learned?1:0,x.seen|0,x.wrongDay|0],o=pr[k];
+      if(!v[0]&&!v[1]&&!v[2]&&!v[3])return;
+      const m=o?[Math.max(o[0],v[0]),Math.max(o[1],v[1]),Math.max(o[2],v[2]),
+                 Math.max(o[3]|0,v[3]),Math.max(o[4]|0,v[4])]:v.slice();
+      while(m.length>3&&!m[m.length-1])m.pop();   // 古い形式と同じ長さに保つ
+      pr[k]=m;
     });
     state.progress=Object.assign({},state.progress,pr);
     state.myWords=state.words.filter(x=>x.own);
+    }
     const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
       onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
-      stat:state.stat};
+      stat:state.stat,daily:state.daily};
     localStorage.setItem(STORE_KEY,JSON.stringify(out));
   }catch(e){ mem=state; }
 }
@@ -318,7 +338,9 @@ if(!state.level)state.level='m1';
 let curLevel=state.level;
 function applyProgress(x){
   const p=state.progress[pkey(x.en)];
-  if(p){x.correct=p[0]|0;x.wrong=p[1]|0;x.learned=!!p[2];}
+  // [正解数, 誤答数, 学習済み, 最後に出会った日, 最後にまちがえた日]（4番目以降は無くてもよい）
+  if(p){x.correct=p[0]|0;x.wrong=p[1]|0;x.learned=!!p[2];
+    if(p[3])x.seen=p[3]|0; if(p[4])x.wrongDay=p[4]|0;}
   return x;
 }
 async function ensureLevel(lv){
@@ -418,7 +440,14 @@ function renderHelp(){
     <div class="mode-head"><h2>❓ 使い方ガイド</h2></div>
     <p class="help" style="margin-bottom:14px">中学レベルから英検準1級レベルまで、${META?META.total.toLocaleString():''}語を収録した英単語アプリです。無料で、広告もアカウント登録もありません。</p>
 
-    ${sec('1. まずレベルを選ぶ',
+    ${sec('1. 迷ったら「今日の20語」',
+      '<p>ホームのいちばん上にある <b>今日の20語</b> を押すだけで、その日にやるべき20語が自動で出ます。何を選ぶか迷わなくて済むので、まずはここから始めるのがおすすめです。</p>'+
+      li(['<b>苦手な語</b> — まちがえてから日が経ったものほど先に出ます',
+          '<b>そろそろ忘れそうな語</b> — 正解が続いている語ほど間隔をあけて出します',
+          '<b>はじめての語</b> — 毎日少しずつ混ぜます'])+
+      '<p>何日休んでも「たまった○○語」のような表示は出ません。いつ開いても20語だけです。まちがえた語は翌日以降に自動でまた出てきます。</p>')}
+
+    ${sec('2. レベルを選ぶ',
       '<p>ホームの「🎓 レベルを選ぶ」から、自分に合ったレベルを選びます。選んだレベルの単語だけが出題されるので、いきなり難しい単語が出て困ることはありません。</p>'+
       li(['<b>中1・中2</b> — 学校の教科書レベル',
           '<b>中3・高校受験</b> — 高校入試と英検3級レベル',
@@ -426,7 +455,7 @@ function renderHelp(){
           '<b>準1級レベル</b> — 大学中級・難関語'])+
       '<p>レベルはいつでも切り替えられます。「すべて」を選べば全レベルから出題されます。</p>')}
 
-    ${sec('2. 学習モードを使い分ける',
+    ${sec('3. 学習モードを使い分ける',
       li(['<b>フラッシュカード</b> — カードをめくって意味を確認。最初に単語を眺めるのに向いています',
           '<b>4択クイズ</b> — 意味を選ぶ。覚えたか手早く確認できます',
           '<b>マッチング</b> — 英語と日本語のペアをそろえるゲーム',
@@ -435,27 +464,27 @@ function renderHelp(){
           '<b>タイムアタック</b> — 60秒で何問正解できるか挑戦'])+
       '<p>まちがえた単語は「⚠️ 苦手だけ」に自動でたまります。テスト前はここを潰すのが効率的です。</p>')}
 
-    ${sec('3. XPとレベル、称号',
+    ${sec('4. XPとレベル、称号',
       '<p>正解するとXPがたまり、レベルが上がります。レベルは40段階あり、上がるごとに <b>First Word</b> から <b>Word Legend</b> まで称号が変わります。ホームの称号名をタップすると、これまでに獲得した称号の一覧が見られます。</p>'+
       li(['4択クイズ 正解 +10 XP','書いて覚える 正解 +15 XP',
           'リスニング（選ぶ）+12 XP／（書く）+18 XP',
           'マッチング クリア +30 XP','フラッシュカードで「覚えた」+3 XP',
           '3コンボ以上で +5、5コンボ以上で +10 のボーナス']))}
 
-    ${sec('4. ごほうび券',
+    ${sec('5. ごほうび券',
       '<p>レベルアップ・実績解除・5日連続学習のたびに「ごほうび券」が1枚もらえます。券の内容は保護者の方と決めて、券の画面の「⚙ 券の内容を変更」から自由に書き換えられます。</p>'+
       '<p>使うときは券の画面を保護者に見せてから「使う」を押します。使った履歴が残るので、あとから確認できます。</p>')}
 
-    ${sec('5. 図鑑と実績',
+    ${sec('6. 図鑑と実績',
       '<p>「📖 ことばの図鑑」は英単語の語源や由来を集めるコレクションです。レベルアップ・実績解除・5日連続学習のときに、未発見のカードから1枚もらえます。ふつう・レア・超レアがあり、超レアほど出にくくなっています。</p>'+
       '<p>「🏅 実績」は40種類。条件を満たすと自動で解除されます。<b>ここに表示されていない実績や図鑑も存在します。</b>いろいろな遊び方を試してみてください。</p>')}
 
-    ${sec('6. 自分の単語を追加する',
+    ${sec('7. 自分の単語を追加する',
       '<p>「単語を増やす・編集する」から、教科書やテスト範囲の単語を登録できます。「まとめて」タブに次の形式で貼り付ければ、一度に登録できます。</p>'+
       '<pre class="hpre">apple りんご\nimportant 重要な\nachieve 達成する</pre>'+
       '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>'+'<p>「保存」タブから、自分で登録した単語をテキストとして書き出せます。メモ帳やメールに貼って保管しておけば、機種変更やデータ消去のときに読み込んで復元できます。</p>')}
 
-    ${sec('7. よくある質問',
+    ${sec('8. よくある質問',
       '<p><b>アプリを新しくしたい</b><br>ホーム画面の下のほうにある「🔄 更新を確認」を押すと、新しいバージョンがあるか調べます。あれば画面の上に案内が出るので「更新する」を押してください。</p>'+
       '<p><b>ホーム画面に置きたい</b><br>お使いの端末に合わせた手順を <a href="#" onclick="renderAddHome();return false" style="color:var(--primary);font-weight:800">こちらで表示</a> します。アイコンから開くとアドレスバーのない全画面で使えて、電波がなくても動きます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
@@ -465,11 +494,11 @@ function renderHelp(){
       '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。自分で登録した単語は「単語を増やす → 保存」タブから書き出して保管できます。</p>'+
       '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
 
-    ${sec('8. 保護者の方へ',
+    ${sec('9. 保護者の方へ',
       '<p>広告・課金・アカウント登録・データ収集は一切ありません。オフラインでも一度読み込めば動作します。</p>'+
       '<p>ごほうび券は、テストの点数などの「結果」ではなく、学習の積み重ね（XP）に連動するよう設計しています。券の内容と使い方のルールは、お子さんと一緒に決めることをおすすめします。</p>')}
 
-    ${sec('9. ライセンス',
+    ${sec('10. ライセンス',
       '<p>このアプリは <b>Beerware ライセンス</b>（改訂第42版）で公開しています。自由にコピー・改変・再配布して構いません。</p>'+
       '<pre class="hpre lic">/*\n * ------------------------------------------\n * "THE BEER-WARE LICENSE" (Revision 42):\n * Yuichi Tanaka wrote this file. As long as you retain this notice you\n * can do whatever you want with this stuff. If we meet some day, and you\n * think this stuff is worth it, you can buy me a beer in return.\n * ------------------------------------------\n */</pre>'+
       '<p>日本語にすると「この注意書きを残しておいてくれるなら、あとは何をしてもらってもかまいません。いつか会うことがあって、これに価値があると思ったら、お礼にビールをおごってください」という意味です。</p>'+
@@ -565,6 +594,8 @@ const ACH_SECRET=[
  {id:'fearless',name:'Fearless',desc:'レベル3以下で準1級に挑戦した'},
  {id:'comeback',name:'Comeback',desc:'苦手を10語以上ためてから0にした'},
  {id:'collector',name:'Secret Keeper',desc:'隠し図鑑を手に入れた'},
+ {id:'daily7',name:'Daily Habit',desc:'今日の20語を7回やりきった'},
+ {id:'daily30',name:'Daily Master',desc:'今日の20語を30回やりきった'},
 ];
 function achAll(){return ACH.concat(ACH_SECRET);}
 function isSecret(id){return ACH_SECRET.some(a=>a.id===id);}
@@ -726,6 +757,9 @@ state.tickets.used=state.tickets.used.map(u=>typeof u==='string'?{d:u,l:'ゲー�
 function ticketsLeft(){return state.tickets.earned-state.tickets.used.length;}
 function grantTicket(n){state.tickets.earned+=n;save();setTimeout(()=>toast('🎟 ごほうび券獲得！（残り'+ticketsLeft()+'枚）'),1100);}
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+// 端末のローカル時刻での通し日数。間隔（何日ぶりか）の計算に使う
+function dayNum(t){const d=t||new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*6e4)/864e5);}
+function mark(x,ok){ if(!x)return; const d=dayNum(); x.seen=d; if(!ok)x.wrongDay=d; }
 function touchStreak(){
   const t=todayStr();if(state.streak.day===t)return;
   const y=new Date(Date.now()-864e5);
@@ -775,6 +809,8 @@ function checkAch(){
     const w=lvStat(l.id);
     if(w.total>0&&w.learned>=w.total)unlock('lvclear');
   });
+  if((st.dailyDone||0)>=7)unlock('daily7');
+  if((st.dailyDone||0)>=30)unlock('daily30');
   if(st.lvPlayed.length>=6)unlock('worldtour');
   if(st.modes.length>=5)unlock('allrounder');
   if(st.speak>=50)unlock('soundlover');
@@ -811,6 +847,100 @@ function speakCur(){ const c=fc.list[fc.i]; if(c)speak(c.en); }
 function speakQuiz(){ const c=qz.list[qz.i]; if(c)speak(c.en); }
 function speakSp(){ const c=sp.list[sp.i]; if(c)speak(c.en); }
 function speakLs(){ const c=ls.list[ls.i]; if(c)speak(c.en); }
+/* ===================== 今日の20語 =====================
+   間隔反復は「今日やる量」ではなく「出題の優先順位」として使う。
+   何日空けても常に20語なので、たまって見えることがない。            */
+const DAILY_N=20;
+function isNewWord(x){ return !(x.seen|0)&&!(x.correct|0)&&!(x.wrong|0)&&!x.learned; }
+// 覚えている度合いに応じた復習間隔（日）
+function ivlOf(x){ const s=Math.max(0,Math.min(5,(x.correct|0)-(x.wrong|0)*2)); return [1,2,4,8,16,32][s]; }
+function dailyScore(x,today){
+  const seen=x.seen|0, wd=x.wrongDay|0;
+  let s;
+  if(isNewWord(x)) s=40;                                     // まだ見ていない語
+  else{
+    const el=seen?today-seen:60;                             // 何日ぶりか
+    if(isWeak(x)) s=100+Math.min(wd?today-wd:el,30)*2;       // 苦手。まちがえてから日が経つほど上げる
+    else{ const due=el-ivlOf(x); s=due>=0?60+Math.min(due,30):15+due; }  // 復習の期限
+  }
+  if(seen&&seen===today)s-=1000;                             // 今日もう出した語は最後に回す
+  return s+Math.random()*6;                                  // 同点はばらけさせる
+}
+function buildDaily(){
+  const all=lvWords();
+  if(all.length<4)return [];
+  const today=dayNum();
+  const scored=all.map(x=>({x:x,s:dailyScore(x,today)})).sort((a,b)=>b.s-a.s);
+  const pick=[],used=new Set();
+  let nWeak=0,nNew=0;
+  for(const it of scored){                                   // 苦手8・新出8を上限に配合する
+    if(pick.length>=DAILY_N)break;
+    const x=it.x;
+    if(isWeak(x)){ if(nWeak>=8)continue; nWeak++; }
+    else if(isNewWord(x)){ if(nNew>=8)continue; nNew++; }
+    pick.push(x);used.add(x.id);
+  }
+  for(const it of scored){                                   // 足りなければ上限を外して補充
+    if(pick.length>=DAILY_N)break;
+    if(!used.has(it.x.id)){pick.push(it.x);used.add(it.x.id);}
+  }
+  let nowNew=pick.filter(isNewWord).length;                  // 新出は最低4語。毎日すこしずつ前に進む
+  if(nowNew<4){
+    for(const it of scored){
+      if(nowNew>=4)break;
+      if(used.has(it.x.id)||!isNewWord(it.x))continue;
+      let k=-1;                                              // いちばん優先度の低い「苦手でも新出でもない語」と入れ替える
+      for(let j=pick.length-1;j>=0;j--){ if(!isWeak(pick[j])&&!isNewWord(pick[j])){k=j;break;} }
+      if(k<0)break;
+      used.delete(pick[k].id); pick[k]=it.x; used.add(it.x.id); nowNew++;
+    }
+  }
+  return shuffle(pick).slice(0,DAILY_N);
+}
+function daily(){
+  const t=todayStr();
+  if(!state.daily||state.daily.d!==t||state.daily.lv!==curLevel){
+    const list=buildDaily();
+    if(!list.length)return null;
+    state.daily={d:t,lv:curLevel,ids:list.map(x=>x.id),ok:[],ng:[],fin:false};
+    save();
+  }
+  return state.daily;
+}
+function dailyWords(){
+  const d=state.daily; if(!d)return [];
+  const m=new Map(state.words.map(x=>[x.id,x]));
+  return d.ids.map(i=>m.get(i)).filter(Boolean);
+}
+function dailyCard(){
+  const d=daily(); if(!d)return '';
+  const tot=d.ids.length,done=d.ok.length+d.ng.length,fin=d.fin||done>=tot;
+
+  let sub,go;                                                // 見出しは状態が変わっても動かさない
+  if(fin){ sub='おわり！ '+d.ok.length+'/'+done+' 正解'; go='もう一度'; }   // 連続日数はレベルカード側に出ている
+  else if(done>0){ sub='あと '+(tot-done)+' 語'; go='つづき'; }
+  else { sub='苦手と新しい語をまぜてあるよ'; go='はじめる'; }
+  return `<div class="daily${fin?' done':''}" onclick="startDaily()">
+      <div class="dic">${fin?'🎉':'☀️'}</div>
+      <div class="dbd"><h3>今日の20語</h3><p>${sub}</p>${
+        (done>0&&!fin)?`<div class="dbar"><i style="width:${Math.round(done/tot*100)}%"></i></div>`:''}</div>
+      <div class="dgo">${go} ›</div>
+    </div>`;
+}
+function startDaily(){
+  const d=daily();
+  if(!d){toast('単語を読み込み中です。少し待ってね');return;}
+  if(state.words.length<4){toast('単語がまだ足りません');return;}
+  const done=new Set(d.ok.concat(d.ng));
+  let list=dailyWords().filter(x=>!done.has(x.id));
+  if(!list.length)list=dailyWords();          // やり終わっていたら、同じ20語でもう一周（記録は据え置き）
+  if(!list.length){toast('単語がまだ足りません');return;}
+  markMode('quiz');markLevel(curLevel);
+  qz={list:list,i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0,daily:true,
+      dirs:list.map(x=>(!isNewWord(x)&&Math.random()<.34)?'ja':'en')};  // 既習語は3回に1回くらい 日→英
+  renderQuiz();
+}
+
 function pop(){
   const p=document.createElement('div');p.className='pop';const ems=['⭐','✨','🎉','💫'];
   for(let i=0;i<8;i++){const s=document.createElement('span');s.textContent=ems[i%ems.length];
@@ -832,6 +962,7 @@ function renderHome(){
     return `<div class="grp-chip ${currentGroup===g.id?'on':''}" onclick="selectGroup('${g.id}')">${esc(g.name)}<small>${c}語</small></div>`;
   }).join('');
   screen.innerHTML=`
+    ${dailyCard()}
     <div class="ring-card">
       <div class="ring">
         <svg width="104" height="104">
@@ -944,7 +1075,7 @@ function fcDir(d){ fc.dir=d; fc.flipped=false; renderFlash(); }
 function fcMove(n){ fc.i=(fc.i+n+fc.list.length)%fc.list.length; fc.flipped=false; renderFlash(); }
 function fcLearn(v){ markMode('flash'); bumpQ();
   const c=fc.list[fc.i],real=state.words.find(x=>x.id===c.id);
-  if(real){real.learned=v;c.learned=v;} save();
+  if(real){real.learned=v;c.learned=v;mark(real,1);} save();
   if(v){addXp(3);touchStreak();}
   if(fc.i<fc.list.length-1){fc.i++;fc.flipped=false;}
   renderFlash();
@@ -959,7 +1090,7 @@ function startQuiz(){ const list=wordsOf(currentGroup); if(list.length<4){toast(
   qz={list:shuffle(list).slice(0,qn),i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0}; renderQuiz(); }
 function renderQuiz(){
   if(qz.i>=qz.list.length) return renderQuizResult();
-  const c=qz.list[qz.i],askEn=qz.dir==='en';
+  const c=qz.list[qz.i],askEn=(qz.dirs?qz.dirs[qz.i]:qz.dir)==='en';
   const question=askEn?c.en:c.ja;
   const pool=state.words.filter(x=>x.id!==c.id);
   const opts=shuffle([c,...shuffle(pool).slice(0,3)]);
@@ -986,13 +1117,51 @@ function answerQuiz(picked,correctId){
   bumpQ();if(real&&real.wrong>state.stat.maxWrong)state.stat.maxWrong=real.wrong;
   if(ok){qz.score++;qz.combo++;qz.maxCombo=Math.max(qz.maxCombo,qz.combo);
     if(qz.combo>state.maxCombo){state.maxCombo=qz.combo;}
-    if(real){real.correct++;if(real.correct>=3)real.learned=true;}
+    if(real){real.correct++;if(real.correct>=3)real.learned=true;mark(real,1);}
     addXp(10+(qz.combo>=5?10:qz.combo>=3?5:0));touchStreak();pop(qz.combo>=3?14:8);
-  } else {qz.combo=0;qz.miss.push(c);if(real)real.wrong++;}
+  } else {qz.combo=0;qz.miss.push(c);if(real){real.wrong++;mark(real,0);}}
+  if(qz.daily&&state.daily&&!state.daily.ok.includes(c.id)&&!state.daily.ng.includes(c.id))
+    (ok?state.daily.ok:state.daily.ng).push(c.id);
   save();
   setTimeout(()=>{qz.i++;qz.answered=false;renderQuiz();},ok?700:1300);
 }
+function renderDailyResult(){
+  const d=state.daily,total=qz.list.length,rate=Math.round(qz.score/total*100);
+  const alldone=d&&(d.ok.length+d.ng.length)>=d.ids.length;
+  if(alldone&&d&&!d.fin){ d.fin=true; state.stat.dailyDone=(state.stat.dailyDone||0)+1; save(); checkAch(); }
+  unlock('first');
+  if(qz.score===total&&total>=10)unlock('perfect');
+  if(qz.score===total&&total>=20)unlock('perfect20');
+  let emoji='🎯',msg='おつかれさま！';
+  if(rate===100){emoji='🏆';msg='全部正解！かんぺき！';}
+  else if(rate>=80){emoji='🎉';msg='いい調子！';}
+  else if(rate>=50){emoji='👍';msg='ここが伸びしろ！';}
+  else{emoji='📖';msg='今日の20語、やりきったね';}
+  const miss=qz.miss.length?`<div class="section-label" style="margin-top:6px">まちがえた単語（明日また出るよ）</div>
+    <div class="miss-list">${qz.miss.map(x=>`<div class="row"><b>${esc(x.en)}</b><span>${esc(x.ja)}</span></div>`).join('')}</div>`:'';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">${emoji}</div>
+      <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rankOf(rate)}</div>
+      <div class="big">${qz.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
+      <h2>${msg}</h2><p>${alldone?'今日のぶんは完了':'あと '+Math.max(0,d.ids.length-(d.ok.length+d.ng.length))+' 語'}${
+        state.streak.count>=2?' ／ 🔥'+state.streak.count+'日連続':''}</p></div>
+    ${miss}
+    <p class="help" style="text-align:center;margin:10px 0 0">明日はまた新しい20語が出ます</p>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      ${qz.miss.length?`<button class="btn btn-primary" onclick="retryDailyMiss()">まちがえた ${qz.miss.length} 語をもう一度</button>`
+                      :`<button class="btn btn-primary" onclick="startDaily()">もう一度</button>`}</div>`;
+}
+function retryDailyMiss(){
+  const list=qz.miss.slice();
+  if(!list.length){renderHome();return;}
+  qz={list:list,i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0,daily:true,
+      dirs:list.map(()=>'en')};
+  renderQuiz();
+}
 function renderQuizResult(){
+  if(qz.daily)return renderDailyResult();
   const total=qz.list.length,rate=Math.round(qz.score/total*100);
   const rk=rankOf(rate);unlock('first');
   if(qz.score===total&&total>=10)unlock('perfect');
@@ -1051,8 +1220,8 @@ function answerTA(picked,correctId){
   document.querySelectorAll('.choice').forEach(b=>{const id=b.dataset.id;
     if(id===correctId)b.classList.add('correct');else if(id===picked)b.classList.add('wrong');else b.classList.add('dim');b.onclick=null;});
   if(ok){ta.score++;ta.combo++;if(ta.combo>state.maxCombo)state.maxCombo=ta.combo;
-    if(real){real.correct++;if(real.correct>=3)real.learned=true;}pop(6);}
-  else{ta.combo=0;if(real)real.wrong++;}
+    if(real){real.correct++;if(real.correct>=3)real.learned=true;mark(real,1);}pop(6);}
+  else{ta.combo=0;if(real){real.wrong++;mark(real,0);}}
   save();
   setTimeout(()=>{ta.i++;if(ta.t>0)renderTA();},ok?350:650);
 }
@@ -1120,13 +1289,13 @@ function checkSpell(){
   if(ok){
     if(!sp.retry){ sp.score++; sp.combo++; sp.maxCombo=Math.max(sp.maxCombo,sp.combo);
       if(sp.combo>state.maxCombo)state.maxCombo=sp.combo;
-      if(real){real.correct++; if(real.correct>=3)real.learned=true;}
+      if(real){real.correct++; if(real.correct>=3)real.learned=true;mark(real,1);}
       addXp(15+(sp.combo>=5?10:sp.combo>=3?5:0));touchStreak(); }
     pop(sp.combo>=3?14:8);
     fb.innerHTML=`<div style="background:var(--success);color:#fff;border-radius:14px;padding:16px;text-align:center;font-weight:800;font-size:16px">⭕ 正解！　<span style="font-family:Poppins">${esc(c.en)}</span></div>
       <div style="display:flex;gap:10px;margin-top:12px"><button class="btn btn-ghost" onclick="speakSp()">🔊 発音</button><button class="btn btn-primary" onclick="nextSpell()">次へ ›</button></div>`;
   }else{
-    if(!sp.retry){ sp.combo=0; sp.miss.push(c); if(real)real.wrong++; }
+    if(!sp.retry){ sp.combo=0; sp.miss.push(c); if(real){real.wrong++;mark(real,0);} }
     fb.innerHTML=`<div style="background:#FFF0F2;border:1.5px solid var(--danger);border-radius:14px;padding:16px;text-align:center">
       <div style="color:var(--danger);font-weight:800;margin-bottom:6px">❌ おしい！ 正解は…</div>
       <div style="font-family:Poppins;font-size:26px;font-weight:700;color:var(--text)">${esc(c.en)}</div>
@@ -1293,11 +1462,11 @@ function lsHint(){
 function lsCorrect(real){
   ls.score++;ls.combo++;ls.maxCombo=Math.max(ls.maxCombo,ls.combo);
   if(ls.combo>state.maxCombo)state.maxCombo=ls.combo;
-  if(real){real.correct++;if(real.correct>=3)real.learned=true;}
+  if(real){real.correct++;if(real.correct>=3)real.learned=true;mark(real,1);}
   addXp((ls.mode==='dict'?18:12)+(ls.combo>=5?10:ls.combo>=3?5:0));touchStreak();
   pop(ls.combo>=3?14:8);
 }
-function lsWrong(c,real){ ls.combo=0; ls.miss.push(c); if(real)real.wrong++; }
+function lsWrong(c,real){ ls.combo=0; ls.miss.push(c); if(real){real.wrong++;mark(real,0);} }
 function answerLsChoice(picked,correctId){
   if(ls.answered)return;ls.answered=true;bumpQ();
   const c=ls.list[ls.i],real=state.words.find(x=>x.id===c.id),ok=picked===correctId;
@@ -1474,7 +1643,7 @@ function exportAll(){
   return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
     xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
     streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
-    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat}});
+    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily}});
 }
 function copyAll(){
   const t=exportAll();
@@ -1510,6 +1679,7 @@ function importAll(){
   state.progress=d.progress||{};
   state.myGroups=d.myGroups||[];
   if(d.stat)state.stat=d.stat;
+  state.daily=d.daily||null;
   if(d.level)state.level=d.level;
   // 自作の単語とグループを、いま動いているリストにも反映してから保存する
   state.words=state.words.filter(x=>!x.own);
@@ -1685,7 +1855,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260830f';
+const APP_VER='20260831a';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
