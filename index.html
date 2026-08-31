@@ -36,6 +36,12 @@
   .brand .logo{font-family:'Poppins';font-weight:800;font-size:24px;letter-spacing:-.5px;color:var(--primary)}
   .brand .logo span{color:var(--accent)}
   .brand .sub{font-size:11px;color:var(--sub);font-weight:500;margin-top:2px}
+
+  .helpbtn{background:var(--panel);border:1px solid var(--border);border-radius:999px;
+    width:34px;height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-size:15px;font-weight:800;color:var(--accent);cursor:pointer;margin-right:8px}
+  .helpbtn:active{transform:scale(.94)}
+  .topbar .right{display:flex;align-items:center}
   .grp-pill{background:var(--panel);border:1px solid var(--border);border-radius:999px;
     padding:7px 14px;font-size:12px;font-weight:700;color:var(--primary);box-shadow:var(--shadow-sm);
     max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -258,7 +264,7 @@
 <div class="app">
   <div class="topbar">
     <div class="brand" onclick="renderHelp()" style="cursor:pointer"><div class="logo">WORD <span>UP!</span></div><div class="sub" id="brandSub">中学〜準1級レベル</div></div>
-    <div class="grp-pill" id="grpPill">全部</div>
+    <button class="helpbtn" onclick="renderHelp()" aria-label="使い方">？</button><div class="grp-pill" id="grpPill">全部</div>
   </div>
   <div id="updBar" style="display:none;align-items:center;gap:10px;background:var(--accent);color:#3A1B00;padding:10px 14px;border-radius:12px;margin:0 0 12px;font-size:13px;font-weight:800">
     <b style="flex:1">新しいバージョンがあります</b>
@@ -327,7 +333,7 @@ function save(){
     const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
       onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
-      stat:state.stat,daily:state.daily};
+      stat:state.stat,daily:state.daily,sound:state.sound};
     localStorage.setItem(STORE_KEY,JSON.stringify(out));
   }catch(e){ mem=state; }
 }
@@ -484,7 +490,11 @@ function renderHelp(){
       '<pre class="hpre">apple りんご\nimportant 重要な\nachieve 達成する</pre>'+
       '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>'+'<p>「保存」タブから、自分で登録した単語をテキストとして書き出せます。メモ帳やメールに貼って保管しておけば、機種変更やデータ消去のときに読み込んで復元できます。</p>')}
 
-    ${sec('8. よくある質問',
+    ${sec('8. 音を止めたいとき',
+      '<p>今日の20語を終えたとき、レベルが上がったとき、図鑑を手に入れたときに短い音が鳴ります。ホームのいちばん下にある <b>🔔 音あり</b> を押すと止まります。もう一度押すと戻ります。</p>'+
+      '<p>学校や電車の中で使うときは、先に切っておくと安心です。</p>')}
+
+    ${sec('9. よくある質問',
       '<p><b>アプリを新しくしたい</b><br>ホーム画面の下のほうにある「🔄 更新を確認」を押すと、新しいバージョンがあるか調べます。あれば画面の上に案内が出るので「更新する」を押してください。</p>'+
       '<p><b>ホーム画面に置きたい</b><br>お使いの端末に合わせた手順を <a href="#" onclick="renderAddHome();return false" style="color:var(--primary);font-weight:800">こちらで表示</a> します。アイコンから開くとアドレスバーのない全画面で使えて、電波がなくても動きます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
@@ -494,11 +504,11 @@ function renderHelp(){
       '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。自分で登録した単語は「単語を増やす → 保存」タブから書き出して保管できます。</p>'+
       '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
 
-    ${sec('9. 保護者の方へ',
+    ${sec('10. 保護者の方へ',
       '<p>広告・課金・アカウント登録・データ収集は一切ありません。オフラインでも一度読み込めば動作します。</p>'+
       '<p>ごほうび券は、テストの点数などの「結果」ではなく、学習の積み重ね（XP）に連動するよう設計しています。券の内容と使い方のルールは、お子さんと一緒に決めることをおすすめします。</p>')}
 
-    ${sec('10. ライセンス',
+    ${sec('11. ライセンス',
       '<p>このアプリは <b>Beerware ライセンス</b>（改訂第42版）で公開しています。自由にコピー・改変・再配布して構いません。</p>'+
       '<pre class="hpre lic">/*\n * ------------------------------------------\n * "THE BEER-WARE LICENSE" (Revision 42):\n * Yuichi Tanaka wrote this file. As long as you retain this notice you\n * can do whatever you want with this stuff. If we meet some day, and you\n * think this stuff is worth it, you can buy me a beer in return.\n * ------------------------------------------\n */</pre>'+
       '<p>日本語にすると「この注意書きを残しておいてくれるなら、あとは何をしてもらってもかまいません。いつか会うことがあって、これに価値があると思ったら、お礼にビールをおごってください」という意味です。</p>'+
@@ -689,6 +699,7 @@ const CARDS=[
  {id:'flocci',r:'H',e:'🪶',n:'floccinaucinihilipilification',d:'29文字。「何かを無価値と見積もること」を意味し、技術用語を除く英語で最も長い部類の語として辞書に載っている'},
 ];
 function grantCard(){
+  chime('card');
   const cnt=state.cardCount||(state.cardCount={});
   const owned=id=>(cnt[id]||0)>0;
   // 未所持は重み3倍。重複も出るが新規が出やすい
@@ -775,7 +786,7 @@ function addXp(n){
   state.xp+=n;
   const after=lvlInfo(state.xp).level;
   save();
-  if(after>before){pop();setTimeout(()=>toast('🎉 Lv.'+after+' — '+titleOf(after).n+' に到達！'),350);grantTicket(after-before);grantCard();}
+  if(after>before){chime('level');pop();setTimeout(()=>toast('🎉 Lv.'+after+' — '+titleOf(after).n+' に到達！'),350);grantTicket(after-before);grantCard();}
   checkAch();
 }
 function unlock(id){
@@ -945,6 +956,46 @@ function startDaily(){
   renderQuiz();
 }
 
+
+/* ===== 効果音 =====
+   節目のときだけ鳴らす。音声ファイルは持たず、その場で合成している。 */
+function soundOn(){ return state.sound!==false; }   // 既定はオン
+let _chimeAt=0;
+function chime(kind){
+  if(!soundOn())return;
+  const now=Date.now();
+  if(now-_chimeAt<450)return;     // レベルアップと図鑑が同時に来たときの二度鳴りを防ぐ
+  _chimeAt=now;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    if(!window._ac)window._ac=new AC();
+    const ac=window._ac;
+    if(ac.state==='suspended')ac.resume();
+    const seq = kind==='level' ? [[523.25,0],[659.25,.10],[783.99,.20],[1046.50,.30]]
+              : kind==='card'  ? [[880.00,0],[1174.66,.09]]
+              :                  [[659.25,0],[783.99,.10],[1046.50,.20]];
+    const dur = kind==='level'?.42:.30;
+    seq.forEach(function(p){
+      const o=ac.createOscillator(), g=ac.createGain();
+      o.type='sine'; o.frequency.value=p[0];
+      const t=ac.currentTime+p[1];
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.linearRampToValueAtTime(.16,t+.012);
+      g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+      o.connect(g); g.connect(ac.destination);
+      o.start(t); o.stop(t+dur+.03);
+    });
+  }catch(e){}
+}
+function toggleSound(){
+  state.sound = !soundOn();
+  save();
+  toast(soundOn()?'🔔 音を鳴らします':'🔕 音を止めました');
+  if(soundOn())chime('card');
+  renderHome();
+}
+
 function pop(){
   const p=document.createElement('div');p.className='pop';const ems=['⭐','✨','🎉','💫'];
   for(let i=0;i<8;i++){const s=document.createElement('span');s.textContent=ems[i%ems.length];
@@ -1028,7 +1079,7 @@ function renderHome(){
       return f.length?`<div class="section-label">🕵️ 隠し実績（${f.length}）</div><div class="ach-grid">${
         f.map(a=>`<div class="achb got" style="border-color:#7B6BD9;background:#F4F2FF"><div class="an">🕵️ ${a.name}</div><div class="ad">${a.desc}</div></div>`).join('')}</div>`:'';})()}
     <div style="display:flex;gap:8px;margin-top:16px">
-      <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="checkUpdate(false)">🔄 更新を確認</button>
+      <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="toggleSound()">${soundOn()?'🔔 音あり':'🔕 音なし'}</button><button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="checkUpdate(false)">🔄 更新を確認</button>
       <button class="btn btn-ghost" style="flex:1;font-size:12px;padding:11px" onclick="openSaveTab()">💾 記録の保存</button>
     </div>
     <p class="help" style="text-align:center;margin-top:8px;opacity:.6">バージョン ${APP_VER}</p>
@@ -1132,7 +1183,7 @@ function answerQuiz(picked,correctId){
 function renderDailyResult(){
   const d=state.daily,total=qz.list.length,rate=Math.round(qz.score/total*100);
   const alldone=d&&(d.ok.length+d.ng.length)>=d.ids.length;
-  if(alldone&&d&&!d.fin){ d.fin=true; state.stat.dailyDone=(state.stat.dailyDone||0)+1; save(); checkAch(); }
+  if(alldone&&d&&!d.fin){ d.fin=true; state.stat.dailyDone=(state.stat.dailyDone||0)+1; save(); checkAch(); chime('daily'); }
   unlock('first');
   if(qz.score===total&&total>=10)unlock('perfect');
   if(qz.score===total&&total>=20)unlock('perfect20');
@@ -1647,7 +1698,7 @@ function exportAll(){
   return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
     xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
     streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
-    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily}});
+    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily,sound:state.sound}});
 }
 function copyAll(){
   const t=exportAll();
@@ -1684,6 +1735,7 @@ function importAll(){
   state.myGroups=d.myGroups||[];
   if(d.stat)state.stat=d.stat;
   state.daily=d.daily||null;
+  if(d.sound!==undefined)state.sound=d.sound;
   if(d.level)state.level=d.level;
   // 自作の単語とグループを、いま動いているリストにも反映してから保存する
   state.words=state.words.filter(x=>!x.own);
@@ -1859,7 +1911,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260831b';
+const APP_VER='20260831c';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
