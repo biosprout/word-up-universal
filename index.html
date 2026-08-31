@@ -37,6 +37,11 @@
   .brand .logo span{color:var(--accent)}
   .brand .sub{font-size:11px;color:var(--sub);font-weight:500;margin-top:2px}
 
+  .bknote{background:var(--panel);border:1px solid var(--border);border-radius:14px;
+    padding:12px 14px;margin-bottom:14px}
+  .bknote p{font-size:12px;color:var(--sub);font-weight:600;line-height:1.75;margin-bottom:9px}
+  .bknote p b{color:var(--text);font-weight:800;font-size:12.5px}
+
   .helpbtn{background:var(--panel);border:1px solid var(--border);border-radius:999px;
     width:34px;height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--accent);cursor:pointer;margin-right:8px}
@@ -1040,6 +1045,7 @@ function renderHome(){
   }).join('');
   screen.innerHTML=`
     ${dailyCard()}
+    ${backupNote()}
     <div class="ring-card">
       <div class="ring">
         <svg width="104" height="104">
@@ -1644,14 +1650,14 @@ function renderMngBody(){
         <div class="field"><label>いまの記録（Lv.${lv.level} / ${state.xp.toLocaleString()} XP / 覚えた ${state.words.filter(x=>x.learned).length}語 / 自作 ${mine.length}語）</label>
           <textarea id="allText" readonly style="min-height:110px;font-size:11px">${esc(exportAll())}</textarea></div>
         <div class="row2">
-          <button class="btn btn-primary" onclick="copyAll()">📋 コピー</button>
-          <button class="btn btn-ghost" onclick="downloadAll()">💾 ファイルに保存</button>
+          <button class="btn btn-primary" style="font-size:12.5px" onclick="saveToFile()">💾 ファイルに保存</button>
+          <button class="btn btn-ghost" style="font-size:12.5px" onclick="copyAll()">📋 コピー</button>
         </div>
       </div>
       <div class="add-box" style="margin-top:10px">
         <div class="field"><label>引っ越し先で貼り付け</label>
           <textarea id="allImp" placeholder="コピーした内容をここに貼り付け" style="min-height:90px;font-size:11px"></textarea></div>
-        <button class="btn btn-accent" onclick="importAll()">まるごと読み込む</button>
+        <div class="row2"><button class="btn btn-ghost" style="font-size:12.5px" onclick="loadFromFile()">📂 ファイルを選ぶ</button><button class="btn btn-accent" style="font-size:12.5px" onclick="importAll()">📋 貼り付け</button></div>
       </div>
       <p class="help" style="margin-bottom:18px">読み込むと、いまの記録は<b>置きかえられます</b>。XP・レベル・称号・実績・図鑑・ごほうび券・苦手・自作単語がすべて移ります。</p>
 
@@ -1660,8 +1666,8 @@ function renderMngBody(){
         <div class="field"><label>自分で追加した単語（${mine.length}語）</label>
           <textarea id="ioText" readonly style="min-height:120px">${esc(exportMy())}</textarea></div>
         <div class="row2">
-          <button class="btn btn-primary" onclick="copyMy()">📋 コピー</button>
-          <button class="btn btn-ghost" onclick="downloadMy()">💾 ファイルに保存</button>
+          <button class="btn btn-primary" style="font-size:12.5px" onclick="copyMy()">📋 コピー</button>
+          <button class="btn btn-ghost" style="font-size:12.5px" onclick="downloadMy()">💾 ファイルに保存</button>
         </div>
       </div>
       <p class="help" style="margin-bottom:14px">単語だけをテキストで書き出します。メモ帳やメールに貼って保管できます。グループ名は行頭の <b>#</b> で表されます。</p>
@@ -1725,21 +1731,75 @@ function exportAll(){
 function copyAll(){
   const t=exportAll();
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(t).then(()=>toast('コピーしました ✓')).catch(()=>fbCopy('allText'));
+    navigator.clipboard.writeText(t).then(()=>{markBackedUp();toast('コピーしました ✓');}).catch(()=>fbCopy('allText'));
   }else fbCopy('allText');
 }
-function downloadAll(){
+/* ===== 記録をファイルでやりとりする ===== */
+/* ===== 記録の保存をうながす =====
+   端末の中だけに記録があるので、ブラウザのデータを消すと消えてしまう。
+   しばらく保存していない人にだけ、静かに知らせる。押しつけない。 */
+const BK_EVERY=30, BK_SNOOZE=7, BK_MIN_XP=500;
+function bkDue(){
+  if((state.xp|0)<BK_MIN_XP)return false;          // 失うものが小さいうちは出さない
+  const t=dayNum();
+  if(state.bkAt==null){ state.bkAt=t; save(); return false; }   // 初回はここから数えはじめる
+  if(state.bkSnooze && t<state.bkSnooze)return false;
+  return t-state.bkAt>=BK_EVERY;
+}
+function backupNote(){
+  if(!bkDue())return '';
+  const d=dayNum()-state.bkAt;
+  return `<div class="bknote">
+      <p><b>記録を保存しておきませんか</b><br>
+      ${d}日ぶんの記録が、この端末の中だけにあります。ブラウザのデータを消すと、いっしょに消えてしまいます。</p>
+      <div class="row2">
+        <button class="btn btn-primary" style="font-size:12px;padding:9px" onclick="goBackup()">💾 保存する</button>
+        <button class="btn btn-ghost" style="font-size:12px;padding:9px" onclick="bkLater()">あとで</button>
+      </div>
+    </div>`;
+}
+function goBackup(){ renderManage();mngTab='io';renderMngBody(); }
+function bkLater(){ state.bkSnooze=dayNum()+BK_SNOOZE; save(); toast('また'+BK_SNOOZE+'日後にお知らせします'); renderHome(); }
+function markBackedUp(){ state.bkAt=dayNum(); state.bkSnooze=0; save(); }
+
+function backupFileName(){
+  const d=new Date(), p=n=>String(n).padStart(2,'0');
+  return 'wordup-'+d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())+'.json';
+}
+async function saveToFile(){
+  const text=exportAll(), name=backupFileName();
   try{
-    const d=new Date();
-    const blob=new Blob([exportAll()],{type:'application/json;charset=utf-8'});
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='wordup-backup-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.json';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
-    toast('ファイルに保存しました ✓');
+    if(window.File&&navigator.canShare){
+      const f=new File([text],name,{type:'application/json'});
+      if(navigator.canShare({files:[f]})){ await navigator.share({files:[f],title:name}); markBackedUp(); return; }
+    }
+  }catch(e){ if(e&&e.name==='AbortError')return; }
+  try{
+    const b=new Blob([text],{type:'application/json;charset=utf-8'});
+    const u=URL.createObjectURL(b), a=document.createElement('a');
+    a.href=u; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(u); a.remove(); },1000);
+    markBackedUp();toast('ファイルに保存しました ✓');
   }catch(e){ toast('保存できませんでした。コピーをお使いください'); }
 }
+function loadFromFile(){
+  const i=document.createElement('input');
+  i.type='file'; i.accept='application/json,.json,.txt';
+  i.onchange=function(){
+    const f=i.files&&i.files[0]; if(!f)return;
+    const r=new FileReader();
+    r.onload=function(){
+      const el=document.getElementById('allImp');
+      if(!el){ toast('読み込む画面をひらいてから選んでください'); return; }
+      el.value=String(r.result||'');
+      importAll();
+    };
+    r.onerror=function(){ toast('ファイルを読めませんでした'); };
+    r.readAsText(f);
+  };
+  i.click();
+}
+
 function importAll(){
   const raw=($('allImp')||{}).value||'';
   if(!raw.trim()){toast('貼り付けてから読み込んでください');return;}
@@ -1792,7 +1852,7 @@ function exportMy(){
 function copyMy(){
   const t=exportMy();
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(t).then(()=>toast('コピーしました ✓')).catch(()=>fallbackCopy(t));
+    navigator.clipboard.writeText(t).then(()=>{markBackedUp();toast('コピーしました ✓');}).catch(()=>fallbackCopy(t));
   }else fallbackCopy(t);
 }
 function fallbackCopy(t){ fbCopy('ioText'); }
@@ -1805,7 +1865,7 @@ function downloadMy(){
     a.download='wordup-mywords-'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.txt';
     document.body.appendChild(a); a.click();
     setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
-    toast('ファイルに保存しました ✓');
+    markBackedUp();toast('ファイルに保存しました ✓');
   }catch(e){ toast('保存できませんでした。コピーをお使いください'); }
 }
 function importMy(){
@@ -1933,7 +1993,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260831d';
+const APP_VER='20260831f';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
