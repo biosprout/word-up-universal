@@ -899,7 +899,11 @@ function buildDaily(){
 }
 function daily(){
   const t=todayStr();
-  if(!state.daily||state.daily.d!==t||state.daily.lv!==curLevel){
+  const d0=state.daily;
+  // まだ1問も解いていないときだけ、レベルの変更で作り直す。
+  // 解きはじめたあとにレベルを変えても、その日のぶんの進み具合は残す
+  const started=!!d0&&((d0.ok.length+d0.ng.length)>0||d0.fin);
+  if(!d0||d0.d!==t||(d0.lv!==curLevel&&!started)){
     const list=buildDaily();
     if(!list.length)return null;
     state.daily={d:t,lv:curLevel,ids:list.map(x=>x.id),ok:[],ng:[],fin:false};
@@ -1855,7 +1859,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260831a';
+const APP_VER='20260831b';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
