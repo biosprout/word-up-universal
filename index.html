@@ -1317,8 +1317,10 @@ function talkGrade(q,ok){
 /* 単語バンクの表示順。データは読みやすいように答えの順で書いてあるので、
    そのまま出すと左から押すだけで解けてしまう。毎回まぜる。 */
 function talkOrder(q){
-  if(!q||q.mode!=='build')return [];
-  return shuffle(q.bank.map((_,i)=>i));
+  if(!q)return [];
+  if(q.mode==='build')return shuffle(q.bank.map((_,i)=>i));
+  if(q.mode==='pick') return shuffle(q.ch.map((_,i)=>i));
+  return [];
 }
 function talkNext(){
   tk.i++; tk.answered=false; tk.sel=[]; tk.near=false; tk.typed='';
@@ -1374,10 +1376,11 @@ function renderTalk(){
         onkeydown="if(event.key==='Enter')talkFill()">${esc(parts[1])}</div>
       ${tk.answered?'':`<button class="btn btn-primary" style="margin-top:12px" onclick="talkFill()">こたえる</button>`}`;
   }else if(q.mode==='pick'){
-    body=`<div class="choices">${q.ch.map((c,k)=>{
+    const ord=(tk.ord&&tk.ord.length===q.ch.length)?tk.ord:q.ch.map((_,i)=>i);
+    body=`<div class="choices">${ord.map(k=>{
       let cls='choice';
       if(tk.answered){ if(k===q.a)cls+=' correct'; }
-      return `<button class="${cls}" onclick="talkPick(${k})">${esc(c)}</button>`;}).join('')}</div>`;
+      return `<button class="${cls}" onclick="talkPick(${k})">${esc(q.ch[k])}</button>`;}).join('')}</div>`;
   }else{
     const slots=tk.sel.map(i=>`<button class="tkslot" onclick="talkTap(${i})">${esc(q.bank[i])}</button>`).join('')
       || '<span class="tkempty">ここに単語がならびます</span>';
@@ -2256,7 +2259,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260901d';
+const APP_VER='20260901e';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
