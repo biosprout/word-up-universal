@@ -1341,7 +1341,7 @@ function talkMenu(){
       <p class="help" style="margin-bottom:12px">英語で聞かれたときに、何をどう返すかの練習です。
       1回${TALK_N}問。まちがえた型ほど先に出ます。</p>
       <div class="seg" style="margin-bottom:14px">
-        ${chip('both','ぜんぶ')}${chip('pick','4択')}${chip('fill','書く')}${chip('build','ならべる')}
+        ${chip('both','ぜんぶ')}${chip('fill','書く')}${chip('build','ならべる')}${chip('pick','4択')}
       </div>
       ${talkLoad!=='ok'?`<div class="ring-card" style="flex-direction:column;text-align:center;gap:8px">
         <div style="font-size:30px">⚠️</div><div style="font-weight:800">問題を読み込めませんでした</div>
@@ -1359,7 +1359,7 @@ function renderTalk(){
   if(tk.i>=tk.list.length)return renderTalkResult();
   const q=tk.list[tk.i];
   const head=`
-    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <button class="back" onclick="talkMenu()">‹ 戻る</button>
     <div class="mode-head"><h2>💬 質問に答える</h2>
       <span class="quiz-score">${tk.combo>=2?`<span class="combo-tag">🔥${tk.combo} </span>`:''}⭐ ${tk.score}</span></div>
     <div class="qbar"><i style="width:${tk.i/tk.list.length*100}%"></i></div>
@@ -1424,7 +1424,7 @@ function renderTalkResult(){
     <div class="miss-list">${tk.miss.map(q=>`<div class="row"><b>${esc(q.q)}</b>
       <span>${esc(q.mode==='pick'?q.ch[q.a]:q.mode==='fill'?q.s.replace('___',q.ans[0]):q.ans[0].join(' '))}</span></div>`).join('')}</div>`:'';
   screen.innerHTML=`
-    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <button class="back" onclick="talkMenu()">‹ 戻る</button>
     <div class="result"><div class="emoji">${rate===100?'🏆':rate>=75?'🎉':'📖'}</div>
       <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rankOf(rate)}</div>
       <div class="big">${tk.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
@@ -2259,7 +2259,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260901e';
+const APP_VER='20260901f';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
