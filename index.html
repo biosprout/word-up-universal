@@ -268,7 +268,7 @@
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="brand" onclick="renderHelp()" style="cursor:pointer"><div class="logo">WORD <span>UP!</span></div><div class="sub" id="brandSub">中学〜準1級レベル</div></div>
+    <div class="brand"><div class="logo">WORD <span>UP!</span></div><div class="sub" id="brandSub">中学〜準1級レベル</div></div>
     <button class="helpbtn" onclick="renderHelp()" aria-label="使い方">？</button><div class="grp-pill" id="grpPill">全部</div>
   </div>
   <div id="updBar" style="display:none;align-items:center;gap:10px;background:var(--accent);color:#3A1B00;padding:10px 14px;border-radius:12px;margin:0 0 12px;font-size:13px;font-weight:800">
@@ -420,9 +420,9 @@ function renderTitles(){
       const rest=xpAtLevel(l)-state.xp;
       return `<div class="trow next">
         <span class="tlv">Lv.${l}</span>
-        <span class="tem">${t.e}</span>
-        <div class="tbd"><div class="tnm">${t.n}</div>
-          <div class="tsub">あと ${rest.toLocaleString()} XP で到達</div></div>
+        <span class="tem">🔒</span>
+        <div class="tbd"><div class="tnm" style="color:var(--sub)">？？？</div>
+          <div class="tsub">あと ${rest.toLocaleString()} XP で判明</div></div>
         <span class="tchk" style="color:var(--accent)">→</span></div>`;
     }
     return `<div class="trow lock">
@@ -476,7 +476,7 @@ function renderHelp(){
       '<p>まちがえた単語は「⚠️ 苦手だけ」に自動でたまります。テスト前はここを潰すのが効率的です。</p>')}
 
     ${sec('4. XPとレベル、称号',
-      '<p>正解するとXPがたまり、レベルが上がります。レベルは40段階あり、上がるごとに <b>First Word</b> から <b>Word Legend</b> まで称号が変わります。ホームの称号名をタップすると、これまでに獲得した称号の一覧が見られます。</p>'+
+      '<p>正解するとXPがたまり、レベルが上がります。レベルは40段階あり、上がるごとに称号が変わります。次に何になるかは、上がってからのお楽しみです。ホームの称号名をタップすると、これまでに獲得した称号の一覧が見られます。</p>'+
       li(['4択クイズ 正解 +10 XP','書いて覚える 正解 +15 XP',
           'リスニング（選ぶ）+12 XP／（書く）+18 XP',
           'マッチング クリア +30 XP','フラッシュカードで「覚えた」+3 XP',
@@ -1058,7 +1058,6 @@ function renderHome(){
         <div class="stat"><div>覚えた<b>${learned}</b></div><div>全部<b>${total}</b></div></div>
       </div>
     </div>
-    <button class="btn btn-ghost" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center" onclick="renderHelp()"><span>❓ 使い方ガイド</span><span style="color:var(--sub);font-size:12px">はじめての人へ</span></button>
     <div class="section-label">🎓 レベルを選ぶ</div>
     <div class="grp-scroll">${lvChips}</div>
     <div class="section-label">📚 グループを選ぶ</div>
@@ -1993,7 +1992,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260831g';
+const APP_VER='20260831h';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
