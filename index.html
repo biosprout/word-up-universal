@@ -42,6 +42,27 @@
   .bknote p{font-size:12px;color:var(--sub);font-weight:600;line-height:1.75;margin-bottom:9px}
   .bknote p b{color:var(--text);font-weight:800;font-size:12.5px}
 
+  .tkq{background:var(--panel);border:1.5px solid var(--border);border-radius:16px;
+    padding:16px 16px;margin-bottom:14px;box-shadow:var(--shadow-sm)}
+  .tkqrow{display:flex;align-items:flex-start;gap:10px}
+  .tkqrow span{flex:1;font-size:17px;font-weight:800;line-height:1.55}
+  .tkspk{flex:0 0 auto;background:var(--bg);border:1px solid var(--border);border-radius:10px;
+    width:34px;height:34px;font-size:15px;cursor:pointer}
+  .tkspk.sm{width:26px;height:26px;font-size:12px;vertical-align:middle;margin-left:4px}
+  .tkans{min-height:56px;border:2px dashed var(--border);border-radius:14px;padding:9px;
+    display:flex;flex-wrap:wrap;gap:6px;align-items:center;background:var(--bg)}
+  .tkans.ok{border-style:solid;border-color:var(--primary);background:#EAF7F0}
+  .tkans.near{border-style:solid;border-color:var(--accent);background:#FFF6E6}
+  .tkans.ng{border-style:solid;border-color:var(--danger);background:#FDECEE}
+  .tkempty{font-size:12px;color:var(--sub);font-weight:600;padding:0 4px}
+  .tkslot{background:var(--panel);border:1.5px solid var(--primary);border-radius:10px;
+    padding:8px 11px;font-size:15px;font-weight:800;font-family:inherit;color:var(--text);cursor:pointer}
+  .tkbank{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+  .tkw{background:var(--panel);border:1.5px solid var(--border);border-radius:10px;
+    padding:9px 12px;font-size:15px;font-weight:700;font-family:inherit;color:var(--text);cursor:pointer}
+  .tkw:active{transform:scale(.95)}
+  .tkw.used{opacity:.28;cursor:default}
+
   .helpbtn{background:var(--panel);border:1px solid var(--border);border-radius:999px;
     width:34px;height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
     font-size:15px;font-weight:800;color:var(--accent);cursor:pointer;margin-right:8px}
@@ -338,7 +359,7 @@ function save(){
     const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
       onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
-      stat:state.stat,daily:state.daily,sound:state.sound};
+      stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone};
     localStorage.setItem(STORE_KEY,JSON.stringify(out));
   }catch(e){ mem=state; }
 }
@@ -466,7 +487,14 @@ function renderHelp(){
           '<b>準1級レベル</b> — 大学中級・難関語'])+
       '<p>レベルはいつでも切り替えられます。「すべて」を選べば全レベルから出題されます。</p>')}
 
-    ${sec('3. 学習モードを使い分ける',
+    ${sec('3. 質問に答える',
+      '<p>英語で聞かれたときに、何をどう返すかの練習です。ホームの <b>💬 質問に答える</b> から。1回${TALK_N}問。</p>'+
+      li(['<b>返答をえらぶ</b> — 4つの中から、その質問に合う返し方をえらびます。How often なら回数、Where なら場所、というように、質問の型ごとの返し方が身につきます',
+          '<b>単語をならべる</b> — 単語のかたまりから必要な語だけをえらんで、返答の文を作ります。使わない語もまざっているので、質問を読まないと解けません'])+
+      '<p>ならべた語が合っていて順番だけ違うときは、「おしい」と出ます。まちがえた型ほど、次に先に出てきます。</p>'+
+      '<p>質問も答えの例も 🔊 で読み上げられます。</p>')}
+
+    ${sec('4. 学習モードを使い分ける',
       li(['<b>フラッシュカード</b> — カードをめくって意味を確認。最初に単語を眺めるのに向いています',
           '<b>4択クイズ</b> — 意味を選ぶ。覚えたか手早く確認できます',
           '<b>マッチング</b> — 英語と日本語のペアをそろえるゲーム',
@@ -475,31 +503,31 @@ function renderHelp(){
           '<b>タイムアタック</b> — 60秒で何問正解できるか挑戦'])+
       '<p>まちがえた単語は「⚠️ 苦手だけ」に自動でたまります。テスト前はここを潰すのが効率的です。</p>')}
 
-    ${sec('4. XPとレベル、称号',
+    ${sec('5. XPとレベル、称号',
       '<p>正解するとXPがたまり、レベルが上がります。レベルは40段階あり、上がるごとに称号が変わります。次に何になるかは、上がってからのお楽しみです。ホームの称号名をタップすると、これまでに獲得した称号の一覧が見られます。</p>'+
       li(['4択クイズ 正解 +10 XP','書いて覚える 正解 +15 XP',
           'リスニング（選ぶ）+12 XP／（書く）+18 XP',
           'マッチング クリア +30 XP','フラッシュカードで「覚えた」+3 XP',
           '3コンボ以上で +5、5コンボ以上で +10 のボーナス']))}
 
-    ${sec('5. ごほうび券',
+    ${sec('6. ごほうび券',
       '<p>レベルアップ・実績解除・5日連続学習のたびに「ごほうび券」が1枚もらえます。券の内容は保護者の方と決めて、券の画面の「⚙ 券の内容を変更」から自由に書き換えられます。</p>'+
       '<p>使うときは券の画面を保護者に見せてから「使う」を押します。使った履歴が残るので、あとから確認できます。</p>')}
 
-    ${sec('6. 図鑑と実績',
+    ${sec('7. 図鑑と実績',
       '<p>「📖 ことばの図鑑」は英単語の語源や由来を集めるコレクションです。レベルアップ・実績解除・5日連続学習のときに、未発見のカードから1枚もらえます。ふつう・レア・超レアがあり、超レアほど出にくくなっています。</p>'+
       '<p>「🏅 実績」は40種類。条件を満たすと自動で解除されます。<b>ここに表示されていない実績や図鑑も存在します。</b>いろいろな遊び方を試してみてください。</p>')}
 
-    ${sec('7. 自分の単語を追加する',
+    ${sec('8. 自分の単語を追加する',
       '<p>「単語を増やす・編集する」から、教科書やテスト範囲の単語を登録できます。「まとめて」タブに次の形式で貼り付ければ、一度に登録できます。</p>'+
       '<pre class="hpre">apple りんご\nimportant 重要な\nachieve 達成する</pre>'+
       '<p>区切りはスペースでもカンマでも構いません。自分で作ったグループは、どのレベルを選んでいるときも表示されます。</p>'+'<p>「保存」タブから、自分で登録した単語をテキストとして書き出せます。メモ帳やメールに貼って保管しておけば、機種変更やデータ消去のときに読み込んで復元できます。</p>')}
 
-    ${sec('8. 音を止めたいとき',
+    ${sec('9. 音を止めたいとき',
       '<p>今日の20語を終えたとき、レベルが上がったとき、図鑑を手に入れたときに短い音が鳴ります。ホームのいちばん下にある <b>🔔 音あり</b> を押すと止まります。もう一度押すと戻ります。</p>'+
       '<p>学校や電車の中で使うときは、先に切っておくと安心です。</p>'+'<p><b>iPhone・iPad で音が鳴らないとき</b><br>本体のマナーモード（横のスイッチ）が入っていると、スピーカーからは鳴りません。イヤホンをつなぐか、マナーモードを解除してください。Android やパソコンでは、この影響はありません。</p>')}
 
-    ${sec('9. よくある質問',
+    ${sec('10. よくある質問',
       '<p><b>アプリを新しくしたい</b><br>ホーム画面の下のほうにある「🔄 更新を確認」を押すと、新しいバージョンがあるか調べます。あれば画面の上に案内が出るので「更新する」を押してください。</p>'+
       '<p><b>ホーム画面に置きたい</b><br>お使いの端末に合わせた手順を <a href="#" onclick="renderAddHome();return false" style="color:var(--primary);font-weight:800">こちらで表示</a> します。アイコンから開くとアドレスバーのない全画面で使えて、電波がなくても動きます。</p>'+
       '<p><b>電波がないところでも使えますか</b><br>一度開いておけば、次からは通信がなくても使えます。</p>'+
@@ -509,11 +537,11 @@ function renderHelp(){
       '<p><b>記録が消えないか心配です</b><br>ブラウザの履歴やサイトデータを消去すると、学習記録も消えます。自分で登録した単語は「単語を増やす → 保存」タブから書き出して保管できます。</p>'+
       '<p><b>データはどこかに送られますか</b><br>いいえ。すべて端末の中だけで動いています。アカウント登録も不要で、外部にデータを送ることはありません。</p>')}
 
-    ${sec('10. 保護者の方へ',
+    ${sec('11. 保護者の方へ',
       '<p>広告・課金・アカウント登録・データ収集は一切ありません。オフラインでも一度読み込めば動作します。</p>'+
       '<p>ごほうび券は、テストの点数などの「結果」ではなく、学習の積み重ね（XP）に連動するよう設計しています。券の内容と使い方のルールは、お子さんと一緒に決めることをおすすめします。</p>')}
 
-    ${sec('11. ライセンス',
+    ${sec('12. ライセンス',
       '<p>このアプリは <b>Beerware ライセンス</b>（改訂第42版）で公開しています。自由にコピー・改変・再配布して構いません。</p>'+
       '<pre class="hpre lic">/*\n * ------------------------------------------\n * "THE BEER-WARE LICENSE" (Revision 42):\n * Yuichi Tanaka wrote this file. As long as you retain this notice you\n * can do whatever you want with this stuff. If we meet some day, and you\n * think this stuff is worth it, you can buy me a beer in return.\n * ------------------------------------------\n */</pre>'+
       '<p>日本語にすると「この注意書きを残しておいてくれるなら、あとは何をしてもらってもかまいません。いつか会うことがあって、これに価値があると思ったら、お礼にビールをおごってください」という意味です。</p>'+
@@ -555,6 +583,8 @@ if(state.maxCombo==null)state.maxCombo=0;
 if(!state.best)state.best={};
 if(!state.ach)state.ach=[];
 if(!state.streak)state.streak={day:'',count:0};
+if(!state.tstat)state.tstat={};
+if(state.talkDone==null)state.talkDone=0;
 
 const ACH=[
  {id:'first',name:'First Step',desc:'クイズを1回クリア'},
@@ -609,6 +639,8 @@ const ACH_SECRET=[
  {id:'fearless',name:'Fearless',desc:'レベル3以下で準1級に挑戦した'},
  {id:'comeback',name:'Comeback',desc:'苦手を10語以上ためてから0にした'},
  {id:'collector',name:'Secret Keeper',desc:'隠し図鑑を手に入れた'},
+ {id:'talkperfect',name:'Good Answer',desc:'質問に答えるで全問正解した'},
+ {id:'talk10',name:'Conversation Starter',desc:'質問に答えるを10回やった'},
  {id:'daily7',name:'Daily Habit',desc:'今日の20語を7回やりきった'},
  {id:'daily30',name:'Daily Master',desc:'今日の20語を30回やりきった'},
 ];
@@ -825,6 +857,7 @@ function checkAch(){
     const w=lvStat(l.id);
     if(w.total>0&&w.learned>=w.total)unlock('lvclear');
   });
+  if((state.talkDone||0)>=10)unlock('talk10');
   if((st.dailyDone||0)>=7)unlock('daily7');
   if((st.dailyDone||0)>=30)unlock('daily30');
   if(st.lvPlayed.length>=6)unlock('worldtour');
@@ -1095,6 +1128,7 @@ function renderHome(){
       <div class="mode game" onclick="startGame()"><div class="ic">⚡</div><h3>マッチング</h3><p>ペアをそろえてタイムを競う</p></div>
       <div class="mode spell" onclick="startSpell()"><div class="ic">✍️</div><h3>書いて覚える</h3><p>意味を見て英語を入力</p></div>
       <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
+      <div class="mode talk" style="grid-column:1/-1" onclick="talkMenu()"><div class="ic">💬</div><h3>質問に答える</h3><p>英語で聞かれて、英語で返す</p></div>
     </div>
     <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
     <div class="section-label" style="margin-top:16px">🏅 実績（${ACH.filter(a=>state.ach.includes(a.id)).length}/${ACH.length}）</div>
@@ -1170,6 +1204,176 @@ function startQuiz(){ const list=wordsOf(currentGroup); if(list.length<4){toast(
   markMode('quiz');markLevel(curLevel);
   if(curLevel==='p1'&&lvlInfo(state.xp).level<=3)unlock('fearless');
   qz={list:shuffle(list).slice(0,qn),i:0,score:0,miss:[],dir:'en',answered:false,combo:0,maxCombo:0}; renderQuiz(); }
+/* ===================== 質問に答える =====================
+   単語を知っているだけでなく、英語で聞かれたときに返せるようにする練習。
+   data/talk.json から読み込む。本体が読めなくてもアプリは動く。 */
+let TALK=[], talkLoad='none';
+async function loadTalk(){
+  if(talkLoad==='ok'||talkLoad==='loading')return;
+  talkLoad='loading';
+  try{
+    const d=await (await fetch(DATA_DIR+'talk.json',{cache:'no-cache'})).json();
+    TALK=d.items||[];
+    talkLoad=TALK.length?'ok':'fail';
+  }catch(e){ talkLoad='fail'; }
+}
+const TALK_N=8;
+function talkNorm(w){ return String(w).toLowerCase().replace(/[.,!?]/g,'').replace(/[’]/g,"'"); }
+function talkSame(a,b){
+  if(a.length!==b.length)return false;
+  for(let i=0;i<a.length;i++) if(talkNorm(a[i])!==talkNorm(b[i]))return false;
+  return true;
+}
+function talkSameSet(a,b){
+  if(a.length!==b.length)return false;
+  const x=a.map(talkNorm).sort(), y=b.map(talkNorm).sort();
+  return x.every((v,i)=>v===y[i]);
+}
+/* 出題の優先順位。まちがえた型ほど先に出す */
+function talkScore(q,today){
+  const st=state.tstat&&state.tstat[q.id];
+  if(!st||(st.c+st.w)===0)return 40;
+  const el=Math.max(0,st.d?today-st.d:60);
+  if(st.w>0&&st.c<=st.w)return 100+Math.min(el,30)*2;
+  const k=Math.max(0,Math.min(5,st.c-st.w*2));
+  const due=el-[1,2,4,8,16,32][k];
+  return due>=0?60+Math.min(due,30):15+due;
+}
+function startTalk(lv){
+  if(talkLoad!=='ok'){ toast(talkLoad==='loading'?'読み込み中。少し待ってね':'データを読み込めませんでした'); return; }
+  const pool=TALK.filter(q=>lv==='all'||q.lv===lv);
+  if(pool.length<3){ toast('この難しさの問題がまだ足りません'); return; }
+  const today=dayNum();
+  const sc=pool.map(q=>({q:q,s:talkScore(q,today)+Math.random()*6})).sort((a,b)=>b.s-a.s);
+  const list=shuffle(sc.slice(0,Math.min(TALK_N,pool.length)).map(x=>x.q));
+  tk={list:list,i:0,score:0,miss:[],answered:false,sel:[],combo:0,maxCombo:0,lv:lv,t0:Date.now()};
+  renderTalk();
+}
+let tk={list:[],i:0,score:0,miss:[],answered:false,sel:[],combo:0,maxCombo:0};
+function talkPick(k){
+  if(tk.answered)return;
+  tk.answered=true;
+  const q=tk.list[tk.i], ok=(k===q.a);
+  talkGrade(q,ok);
+  renderTalk();
+}
+function talkTap(i){
+  if(tk.answered)return;
+  const p=tk.sel.indexOf(i);
+  if(p>=0)tk.sel.splice(p,1); else tk.sel.push(i);
+  renderTalk();
+}
+function talkClear(){ if(!tk.answered){ tk.sel=[]; renderTalk(); } }
+function talkSubmit(){
+  if(tk.answered)return;
+  const q=tk.list[tk.i];
+  if(!tk.sel.length){ toast('単語をえらんでね'); return; }
+  const said=tk.sel.map(i=>q.bank[i]);
+  const ok=q.ans.some(a=>talkSame(a,said));
+  tk.near=!ok && q.ans.some(a=>talkSameSet(a,said));   // 語は合っているが並びが違う
+  tk.answered=true;
+  talkGrade(q,ok);
+  renderTalk();
+}
+function talkGrade(q,ok){
+  if(!state.tstat)state.tstat={};
+  const st=state.tstat[q.id]||{c:0,w:0};
+  if(ok){ st.c++; tk.score++; tk.combo++; tk.maxCombo=Math.max(tk.maxCombo,tk.combo);
+    if(tk.combo>state.maxCombo)state.maxCombo=tk.combo;
+    addXp(14+(tk.combo>=5?10:tk.combo>=3?5:0)); touchStreak(); pop(tk.combo>=3?14:8);
+  }else{ st.w++; tk.combo=0; tk.miss.push(q); }
+  st.d=dayNum(); state.tstat[q.id]=st;
+  state.talkDone=(state.talkDone||0);
+  save(); checkAch();
+}
+function talkNext(){ tk.i++; tk.answered=false; tk.sel=[]; tk.near=false; renderTalk(); }
+function talkMenu(){
+  loadTalk().then(()=>{
+    const cnt=l=>TALK.filter(q=>l==='all'||q.lv===l).length;
+    const row=(l,t,d)=>`<div class="mode" style="grid-column:1/-1" onclick="startTalk('${l}')">
+      <div class="ic">${l==='all'?'🎲':'📗'}</div><h3>${t}</h3><p>${d}（${cnt(l)}問）</p></div>`;
+    screen.innerHTML=`
+      <button class="back" onclick="renderHome()">‹ 戻る</button>
+      <div class="mode-head"><h2>💬 質問に答える</h2></div>
+      <p class="help" style="margin-bottom:14px">英語で聞かれたときに、何をどう返すかの練習です。
+      1回${TALK_N}問。まちがえた型ほど先に出ます。</p>
+      ${talkLoad!=='ok'?`<div class="ring-card" style="flex-direction:column;text-align:center;gap:8px">
+        <div style="font-size:30px">⚠️</div><div style="font-weight:800">問題を読み込めませんでした</div>
+        <p class="help">data フォルダの talk.json が見つかりません。</p></div>`:
+      `<div class="modes">
+        ${row('all','ぜんぶから','中1〜中3をまぜて')}
+        ${row('e1','やさしい','中1でならう形')}
+        ${row('e2','ふつう','中2でならう形')}
+        ${row('e3','むずかしい','中3でならう形')}
+      </div>`}`;
+    window.scrollTo(0,0);
+  });
+}
+function renderTalk(){
+  if(tk.i>=tk.list.length)return renderTalkResult();
+  const q=tk.list[tk.i];
+  const head=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="mode-head"><h2>💬 質問に答える</h2>
+      <span class="quiz-score">${tk.combo>=2?`<span class="combo-tag">🔥${tk.combo} </span>`:''}⭐ ${tk.score}</span></div>
+    <div class="qbar"><i style="width:${tk.i/tk.list.length*100}%"></i></div>
+    <div class="tkq">
+      <div class="tkqrow"><span>${esc(q.q)}</span>
+        <button class="tkspk" onclick="speak('${q.q.replace(/'/g,"\\'")}')" aria-label="読み上げ">🔊</button></div>
+    </div>`;
+  let body;
+  if(q.mode==='pick'){
+    body=`<div class="choices">${q.ch.map((c,k)=>{
+      let cls='choice';
+      if(tk.answered){ if(k===q.a)cls+=' correct'; }
+      return `<button class="${cls}" onclick="talkPick(${k})">${esc(c)}</button>`;}).join('')}</div>`;
+  }else{
+    const slots=tk.sel.map(i=>`<button class="tkslot" onclick="talkTap(${i})">${esc(q.bank[i])}</button>`).join('')
+      || '<span class="tkempty">ここに単語がならびます</span>';
+    const bank=q.bank.map((w,i)=>tk.sel.includes(i)
+      ? `<button class="tkw used" disabled>${esc(w)}</button>`
+      : `<button class="tkw" onclick="talkTap(${i})">${esc(w)}</button>`).join('');
+    body=`<div class="tkans ${tk.answered?(tk.near?'near':(tk.miss[tk.miss.length-1]===q?'ng':'ok')):''}">${slots}</div>
+      <div class="tkbank">${bank}</div>
+      ${tk.answered?'':`<div class="row2" style="margin-top:12px">
+        <button class="btn btn-ghost" onclick="talkClear()">やり直す</button>
+        <button class="btn btn-primary" onclick="talkSubmit()">こたえる</button></div>`}`;
+  }
+  let fb='';
+  if(tk.answered){
+    const wrong=tk.miss[tk.miss.length-1]===q;
+    const model=q.mode==='pick'?q.ch[q.a]:q.ans[0].join(' ');
+    fb=`<div class="exp"><b>${wrong?(tk.near?'⭕ おしい！ 使う語は合っています。ならびを見直そう':'❌ もう一度、質問を読んでみよう'):'⭕ 正解'}</b>
+      <div style="margin-top:6px">答えの例: <b>${esc(model)}</b>
+        <button class="tkspk sm" onclick="speak('${model.replace(/'/g,"\\'")}')">🔊</button></div>
+      <div style="margin-top:4px">${esc(q.ex)}</div></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="talkNext()">次へ ›</button>`;
+  }
+  screen.innerHTML=head+body+fb;
+  window.scrollTo(0,0);
+}
+function renderTalkResult(){
+  const total=tk.list.length, rate=Math.round(tk.score/total*100);
+  state.talkDone=(state.talkDone||0)+1;
+  unlock('first');
+  if(tk.score===total&&total>=TALK_N)unlock('talkperfect');
+  save(); checkAch();
+  const msg=rate===100?'全問正解！':rate>=75?'いい調子！':rate>=50?'ここが伸びしろ':'質問の型から覚えよう';
+  const miss=tk.miss.length?`<div class="section-label" style="margin-top:6px">見直したい質問</div>
+    <div class="miss-list">${tk.miss.map(q=>`<div class="row"><b>${esc(q.q)}</b>
+      <span>${esc(q.mode==='pick'?q.ch[q.a]:q.ans[0].join(' '))}</span></div>`).join('')}</div>`:'';
+  screen.innerHTML=`
+    <button class="back" onclick="renderHome()">‹ 戻る</button>
+    <div class="result"><div class="emoji">${rate===100?'🏆':rate>=75?'🎉':'📖'}</div>
+      <div style="font-family:Poppins;font-size:46px;font-weight:800;color:var(--accent);line-height:1">${rankOf(rate)}</div>
+      <div class="big">${tk.score}<span style="font-size:28px;color:var(--sub)">/${total}</span></div>
+      <h2>${msg}</h2><p>正答率 ${rate}%</p></div>
+    ${miss}
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <button class="btn btn-ghost" onclick="renderHome()">ホーム</button>
+      <button class="btn btn-primary" onclick="startTalk('${tk.lv}')">もう一度</button></div>`;
+}
+
 function renderQuiz(){
   if(qz.i>=qz.list.length) return renderQuizResult();
   const c=qz.list[qz.i],askEn=(qz.dirs?qz.dirs[qz.i]:qz.dir)==='en';
@@ -1725,7 +1929,7 @@ function exportAll(){
   return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
     xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
     streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
-    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily,sound:state.sound}});
+    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone}});
 }
 function copyAll(){
   const t=exportAll();
@@ -1817,6 +2021,7 @@ function importAll(){
   if(d.stat)state.stat=d.stat;
   state.daily=d.daily||null;
   if(d.sound!==undefined)state.sound=d.sound;
+  state.tstat=d.tstat||{}; state.talkDone=d.talkDone||0;
   if(d.level)state.level=d.level;
   // 自作の単語とグループを、いま動いているリストにも反映してから保存する
   state.words=state.words.filter(x=>!x.own);
@@ -1992,7 +2197,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260831h';
+const APP_VER='20260901a';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
@@ -2032,6 +2237,7 @@ if('serviceWorker' in navigator){
 
 /* 起動（全ての定義の後で実行する） */
 boot();
+loadTalk();
 setTimeout(()=>checkUpdate(true),2500);
 </script>
 </body>

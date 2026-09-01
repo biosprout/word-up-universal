@@ -1,6 +1,6 @@
 // WORD UP! Service Worker
 // 一度読み込んだファイルをキャッシュし、オフラインでも動くようにする
-const CACHE = 'wordup-v8';
+const CACHE = 'wordup-v9';
 const ASSETS = [
   './',
   './index.html',
@@ -14,7 +14,8 @@ const ASSETS = [
   './data/m3.json',
   './data/p2.json',
   './data/e2.json',
-  './data/p1.json'
+  './data/p1.json',
+  './data/talk.json'
 ];
 
 self.addEventListener('install', e => {
