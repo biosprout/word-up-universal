@@ -57,6 +57,13 @@
   .tkempty{font-size:12px;color:var(--sub);font-weight:600;padding:0 4px}
   .tkslot{background:var(--panel);border:1.5px solid var(--primary);border-radius:10px;
     padding:8px 11px;font-size:15px;font-weight:800;font-family:inherit;color:var(--text);cursor:pointer}
+  .tkfill{background:var(--panel);border:1.5px solid var(--border);border-radius:14px;
+    padding:16px 15px;font-size:16px;font-weight:700;line-height:2.1}
+  .tkinput{width:6.5em;font-family:inherit;font-size:16px;font-weight:800;color:var(--primary);
+    text-align:center;border:none;border-bottom:2.5px solid var(--primary);background:transparent;
+    padding:2px 4px;margin:0 3px}
+  .tkinput:focus{outline:none;border-bottom-color:var(--accent)}
+  .tkinput:disabled{color:var(--sub);border-bottom-color:var(--border)}
   .tkbank{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
   .tkw{background:var(--panel);border:1.5px solid var(--border);border-radius:10px;
     padding:9px 12px;font-size:15px;font-weight:700;font-family:inherit;color:var(--text);cursor:pointer}
@@ -359,7 +366,7 @@ function save(){
     const out={xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
       streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
       onboarded:state.onboarded,progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,
-      stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone};
+      stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone,talkMd:state.talkMd};
     localStorage.setItem(STORE_KEY,JSON.stringify(out));
   }catch(e){ mem=state; }
 }
@@ -489,9 +496,10 @@ function renderHelp(){
 
     ${sec('3. 質問に答える',
       '<p>英語で聞かれたときに、何をどう返すかの練習です。ホームの <b>💬 質問に答える</b> から。1回${TALK_N}問。</p>'+
-      li(['<b>返答をえらぶ</b> — 4つの中から、その質問に合う返し方をえらびます。How often なら回数、Where なら場所、というように、質問の型ごとの返し方が身につきます',
-          '<b>単語をならべる</b> — 単語のかたまりから必要な語だけをえらんで、返答の文を作ります。使わない語もまざっているので、質問を読まないと解けません'])+
-      '<p>ならべた語が合っていて順番だけ違うときは、「おしい」と出ます。まちがえた型ほど、次に先に出てきます。</p>'+
+      li(['<b>4択</b> — 4つの中から、その質問に合う返し方をえらびます。How often なら回数、Where なら場所、というように、質問の型ごとの返し方が身につきます',
+          '<b>書く</b> — 返答の文の空いているところに、自分で単語を打ちこみます',
+          '<b>ならべる</b> — 単語のかたまりから必要な語だけをえらんで、返答の文を作ります。使わない語もまざっているので、質問を読まないと解けません'])+
+      '<p>上のボタンで、<b>4択</b>・<b>書く</b>・<b>ならべる</b>・ぜんぶ から選べます。</p>'+'<p>ならべた語が合っていて順番だけ違うときは、「おしい」と出ます。まちがえた型ほど、次に先に出てきます。</p>'+
       '<p>質問も答えの例も 🔊 で読み上げられます。</p>')}
 
     ${sec('4. 学習モードを使い分ける',
@@ -1127,8 +1135,8 @@ function renderHome(){
       <div class="mode quiz" onclick="startQuiz()"><div class="ic">✏️</div><h3>4択クイズ</h3><p>意味を当ててチェック</p></div>
       <div class="mode game" onclick="startGame()"><div class="ic">⚡</div><h3>マッチング</h3><p>ペアをそろえてタイムを競う</p></div>
       <div class="mode spell" onclick="startSpell()"><div class="ic">✍️</div><h3>書いて覚える</h3><p>意味を見て英語を入力</p></div>
-      <div class="mode listen" style="grid-column:1/-1" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて、選ぶ・書く</p></div>
-      <div class="mode talk" style="grid-column:1/-1" onclick="talkMenu()"><div class="ic">💬</div><h3>質問に答える</h3><p>英語で聞かれて、英語で返す</p></div>
+      <div class="mode listen" onclick="startLs()"><div class="ic">👂</div><h3>リスニング</h3><p>音だけ聞いて答える</p></div>
+      <div class="mode talk" onclick="talkMenu()"><div class="ic">💬</div><h3>質問に答える</h3><p>英語で聞かれて返す</p></div>
     </div>
     <button class="btn btn-accent" style="margin-top:12px" onclick="startTA()">⚡ タイムアタック（60秒で何問？）${state.best.ta?` ベスト:${state.best.ta}問`:''}</button>
     <div class="section-label" style="margin-top:16px">🏅 実績（${ACH.filter(a=>state.ach.includes(a.id)).length}/${ACH.length}）</div>
@@ -1239,14 +1247,21 @@ function talkScore(q,today){
   const due=el-[1,2,4,8,16,32][k];
   return due>=0?60+Math.min(due,30):15+due;
 }
-function startTalk(lv){
+function talkMd(){ return state.talkMd||'both'; }
+function setTalkMd(m){ state.talkMd=m; save(); talkMenu(); }
+function talkPool(lv,md){
+  return TALK.filter(q=>(lv==='all'||q.lv===lv)&&(md==='both'||q.mode===md));
+}
+function startTalk(lv,md){
   if(talkLoad!=='ok'){ toast(talkLoad==='loading'?'読み込み中。少し待ってね':'データを読み込めませんでした'); return; }
-  const pool=TALK.filter(q=>lv==='all'||q.lv===lv);
-  if(pool.length<3){ toast('この難しさの問題がまだ足りません'); return; }
+  md=md||talkMd();
+  const pool=talkPool(lv,md);
+  if(pool.length<3){ toast('この組み合わせの問題がまだ足りません'); return; }
   const today=dayNum();
   const sc=pool.map(q=>({q:q,s:talkScore(q,today)+Math.random()*6})).sort((a,b)=>b.s-a.s);
   const list=shuffle(sc.slice(0,Math.min(TALK_N,pool.length)).map(x=>x.q));
-  tk={list:list,i:0,score:0,miss:[],answered:false,sel:[],combo:0,maxCombo:0,lv:lv,t0:Date.now()};
+  tk={list:list,i:0,score:0,miss:[],answered:false,sel:[],typed:'',combo:0,maxCombo:0,
+      lv:lv,md:md,ord:talkOrder(list[0]),t0:Date.now()};
   renderTalk();
 }
 let tk={list:[],i:0,score:0,miss:[],answered:false,sel:[],combo:0,maxCombo:0};
@@ -1264,6 +1279,19 @@ function talkTap(i){
   renderTalk();
 }
 function talkClear(){ if(!tk.answered){ tk.sel=[]; renderTalk(); } }
+function talkFill(){
+  if(tk.answered)return;
+  const el=document.getElementById('tkin');
+  const said=(el?el.value:'').trim();
+  if(!said){ toast('答えを書いてね'); return; }
+  tk.typed=said;
+  const q=tk.list[tk.i];
+  const norm=x=>String(x).toLowerCase().replace(/[.,!?]/g,'').replace(/[’]/g,"'").trim();
+  const ok=q.ans.some(a=>norm(a)===norm(said));
+  tk.answered=true;
+  talkGrade(q,ok);
+  renderTalk();
+}
 function talkSubmit(){
   if(tk.answered)return;
   const q=tk.list[tk.i];
@@ -1286,17 +1314,33 @@ function talkGrade(q,ok){
   state.talkDone=(state.talkDone||0);
   save(); checkAch();
 }
-function talkNext(){ tk.i++; tk.answered=false; tk.sel=[]; tk.near=false; renderTalk(); }
+/* 単語バンクの表示順。データは読みやすいように答えの順で書いてあるので、
+   そのまま出すと左から押すだけで解けてしまう。毎回まぜる。 */
+function talkOrder(q){
+  if(!q||q.mode!=='build')return [];
+  return shuffle(q.bank.map((_,i)=>i));
+}
+function talkNext(){
+  tk.i++; tk.answered=false; tk.sel=[]; tk.near=false; tk.typed='';
+  tk.ord=talkOrder(tk.list[tk.i]);
+  renderTalk();
+}
 function talkMenu(){
   loadTalk().then(()=>{
-    const cnt=l=>TALK.filter(q=>l==='all'||q.lv===l).length;
-    const row=(l,t,d)=>`<div class="mode" style="grid-column:1/-1" onclick="startTalk('${l}')">
+    const md=talkMd();
+    const cnt=l=>talkPool(l,md).length;
+    const chip=(m,t)=>`<button class="${md===m?'on':''}" onclick="setTalkMd('${m}')">${t}</button>`;
+    const row=(l,t,d)=>`<div class="mode" style="grid-column:1/-1"
+      onclick="startTalk('${l}')" ${cnt(l)<3?'style="opacity:.45"':''}>
       <div class="ic">${l==='all'?'🎲':'📗'}</div><h3>${t}</h3><p>${d}（${cnt(l)}問）</p></div>`;
     screen.innerHTML=`
       <button class="back" onclick="renderHome()">‹ 戻る</button>
       <div class="mode-head"><h2>💬 質問に答える</h2></div>
-      <p class="help" style="margin-bottom:14px">英語で聞かれたときに、何をどう返すかの練習です。
+      <p class="help" style="margin-bottom:12px">英語で聞かれたときに、何をどう返すかの練習です。
       1回${TALK_N}問。まちがえた型ほど先に出ます。</p>
+      <div class="seg" style="margin-bottom:14px">
+        ${chip('both','ぜんぶ')}${chip('pick','4択')}${chip('fill','書く')}${chip('build','ならべる')}
+      </div>
       ${talkLoad!=='ok'?`<div class="ring-card" style="flex-direction:column;text-align:center;gap:8px">
         <div style="font-size:30px">⚠️</div><div style="font-weight:800">問題を読み込めませんでした</div>
         <p class="help">data フォルダの talk.json が見つかりません。</p></div>`:
@@ -1322,7 +1366,14 @@ function renderTalk(){
         <button class="tkspk" onclick="speak('${q.q.replace(/'/g,"\\'")}')" aria-label="読み上げ">🔊</button></div>
     </div>`;
   let body;
-  if(q.mode==='pick'){
+  if(q.mode==='fill'){
+    const parts=q.s.split('___');
+    body=`<div class="tkfill">${esc(parts[0])}<input id="tkin" class="tkinput" type="text"
+        autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+        ${tk.answered?'disabled':''} value="${esc(tk.typed||'')}"
+        onkeydown="if(event.key==='Enter')talkFill()">${esc(parts[1])}</div>
+      ${tk.answered?'':`<button class="btn btn-primary" style="margin-top:12px" onclick="talkFill()">こたえる</button>`}`;
+  }else if(q.mode==='pick'){
     body=`<div class="choices">${q.ch.map((c,k)=>{
       let cls='choice';
       if(tk.answered){ if(k===q.a)cls+=' correct'; }
@@ -1330,9 +1381,10 @@ function renderTalk(){
   }else{
     const slots=tk.sel.map(i=>`<button class="tkslot" onclick="talkTap(${i})">${esc(q.bank[i])}</button>`).join('')
       || '<span class="tkempty">ここに単語がならびます</span>';
-    const bank=q.bank.map((w,i)=>tk.sel.includes(i)
-      ? `<button class="tkw used" disabled>${esc(w)}</button>`
-      : `<button class="tkw" onclick="talkTap(${i})">${esc(w)}</button>`).join('');
+    const ord=(tk.ord&&tk.ord.length===q.bank.length)?tk.ord:q.bank.map((_,i)=>i);
+    const bank=ord.map(i=>tk.sel.includes(i)
+      ? `<button class="tkw used" disabled>${esc(q.bank[i])}</button>`
+      : `<button class="tkw" onclick="talkTap(${i})">${esc(q.bank[i])}</button>`).join('');
     body=`<div class="tkans ${tk.answered?(tk.near?'near':(tk.miss[tk.miss.length-1]===q?'ng':'ok')):''}">${slots}</div>
       <div class="tkbank">${bank}</div>
       ${tk.answered?'':`<div class="row2" style="margin-top:12px">
@@ -1342,7 +1394,9 @@ function renderTalk(){
   let fb='';
   if(tk.answered){
     const wrong=tk.miss[tk.miss.length-1]===q;
-    const model=q.mode==='pick'?q.ch[q.a]:q.ans[0].join(' ');
+    const model=q.mode==='pick'?q.ch[q.a]
+      :q.mode==='fill'?q.s.replace('___',q.ans[0])
+      :q.ans[0].join(' ');
     fb=`<div class="exp"><b>${wrong?(tk.near?'⭕ おしい！ 使う語は合っています。ならびを見直そう':'❌ もう一度、質問を読んでみよう'):'⭕ 正解'}</b>
       <div style="margin-top:6px">答えの例: <b>${esc(model)}</b>
         <button class="tkspk sm" onclick="speak('${model.replace(/'/g,"\\'")}')">🔊</button></div>
@@ -1351,6 +1405,10 @@ function renderTalk(){
   }
   screen.innerHTML=head+body+fb;
   window.scrollTo(0,0);
+  if(q.mode==='fill'&&!tk.answered){
+    const el=document.getElementById('tkin');
+    if(el)setTimeout(()=>{try{el.focus();}catch(e){}},60);
+  }
 }
 function renderTalkResult(){
   const total=tk.list.length, rate=Math.round(tk.score/total*100);
@@ -1361,7 +1419,7 @@ function renderTalkResult(){
   const msg=rate===100?'全問正解！':rate>=75?'いい調子！':rate>=50?'ここが伸びしろ':'質問の型から覚えよう';
   const miss=tk.miss.length?`<div class="section-label" style="margin-top:6px">見直したい質問</div>
     <div class="miss-list">${tk.miss.map(q=>`<div class="row"><b>${esc(q.q)}</b>
-      <span>${esc(q.mode==='pick'?q.ch[q.a]:q.ans[0].join(' '))}</span></div>`).join('')}</div>`:'';
+      <span>${esc(q.mode==='pick'?q.ch[q.a]:q.mode==='fill'?q.s.replace('___',q.ans[0]):q.ans[0].join(' '))}</span></div>`).join('')}</div>`:'';
   screen.innerHTML=`
     <button class="back" onclick="renderHome()">‹ 戻る</button>
     <div class="result"><div class="emoji">${rate===100?'🏆':rate>=75?'🎉':'📖'}</div>
@@ -1929,7 +1987,7 @@ function exportAll(){
   return JSON.stringify({app:'wordup',v:1,ver:APP_VER,d:{
     xp:state.xp,maxCombo:state.maxCombo,ach:state.ach,cards:state.cards,cardCount:state.cardCount,best:state.best,
     streak:state.streak,tickets:state.tickets,ticketLabel:state.ticketLabel,level:state.level,
-    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone}});
+    progress:state.progress,myWords:state.myWords,myGroups:state.myGroups,stat:state.stat,daily:state.daily,sound:state.sound,tstat:state.tstat,talkDone:state.talkDone,talkMd:state.talkMd}});
 }
 function copyAll(){
   const t=exportAll();
@@ -2022,6 +2080,7 @@ function importAll(){
   state.daily=d.daily||null;
   if(d.sound!==undefined)state.sound=d.sound;
   state.tstat=d.tstat||{}; state.talkDone=d.talkDone||0;
+  if(d.talkMd)state.talkMd=d.talkMd;
   if(d.level)state.level=d.level;
   // 自作の単語とグループを、いま動いているリストにも反映してから保存する
   state.words=state.words.filter(x=>!x.own);
@@ -2197,7 +2256,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260901a';
+const APP_VER='20260901d';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
