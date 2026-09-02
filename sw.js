@@ -1,6 +1,6 @@
 // WORD UP! Service Worker
 // 一度読み込んだファイルをキャッシュし、オフラインでも動くようにする
-const CACHE = 'wordup-v9';
+const CACHE = 'wordup-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -34,17 +34,20 @@ self.addEventListener('activate', e => {
   );
 });
 
-// ネットワーク優先。失敗したらキャッシュを返す（更新を取りこぼさないため）
+// アプリ本体と単語・talk データはネットワーク優先。失敗したときだけキャッシュを使う。
+// こうしておくと、data/*.json を差し替えるだけで新しい単語や問題が届く
+// （このファイルの CACHE 版数を上げ直さなくてよい）。
+// アイコンなど変わらないものはキャッシュ優先で速く出す。
 self.addEventListener('fetch', e => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;   // フォントなど外部は素通し
 
-  // HTML（アプリ本体）は毎回ネットワークを見に行き、失敗したときだけキャッシュを使う。
-  // これにより更新が確実に届く。データやアイコンはキャッシュ優先で速く出す。
   const isDoc = req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/');
-  if (isDoc) {
+  const isData = url.pathname.indexOf('/data/') >= 0 && url.pathname.endsWith('.json');
+
+  if (isDoc || isData) {
     e.respondWith(
       fetch(req, { cache: 'no-store' })
         .then(res => {
@@ -52,7 +55,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(req, copy)).catch(() => {});
           return res;
         })
-        .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+        .catch(() => caches.match(req).then(r => r || (isDoc ? caches.match('./index.html') : undefined)))
     );
     return;
   }
