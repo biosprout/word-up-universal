@@ -102,6 +102,9 @@
     {"id":"b27","lv":"e3","t":"opinion","mode":"build","q":"Why do you want to study abroad?","bank":["Because","I","want","to","meet","new","people","why","do","yes"],"ans":[["Because","I","want","to","meet","new","people"]],"ex":"Why には Because …。want to のあとは動詞のもとの形。"},
     {"id":"b28","lv":"e2","t":"shall","mode":"build","q":"Shall we meet at the station?","bank":["Yes","let's","meet","at","five","shall","I","will","no","do"],"ans":[["Yes","let's"],["let's","meet","at","five"],["Yes","let's","meet","at","five"]],"ex":"Shall we …? には Yes, let's. 時間を足すと話が進む。"},
     {"id":"b29","lv":"e1","t":"what","mode":"build","q":"What is your dream?","bank":["My","dream","is","to","be","a","doctor","want","yes","at"],"ans":[["My","dream","is","to","be","a","doctor"]],"ex":"夢を言うときは My dream is to … の形が使いやすい。"},
-    {"id":"b30","lv":"e1","t":"where","mode":"build","q":"Where do you want to go this summer?","bank":["I","want","to","go","to","Okinawa","went","at","yes","do"],"ans":[["I","want","to","go","to","Okinawa"]],"ex":"行きたい場所は I want to go to … で答える。"}
+    {"id":"b30","lv":"e1","t":"where","mode":"build","q":"Where do you want to go this summer?","bank":["I","want","to","go","to","Okinawa","went","at","yes","do"],"ans":[["I","want","to","go","to","Okinawa"]],"ex":"行きたい場所は I want to go to … で答える。"},
+    {"id":"p31","lv":"e1","t":"when","mode":"pick","q":"When is the school festival?","ch":["Next Saturday.","In the gym.","With my friends.","For two hours."],"a":0,"ex":"When ...? は時をたずねる質問。日を答えるので Next Saturday. が自然で、場所や相手、長さを答える表現は合わない。"},
+    {"id":"f21","lv":"e1","t":"where","mode":"fill","q":"Where is the post office?","s":"It is next ___ the bank.","ans":["to"],"ex":"「〜のとなり」は next to ... と表す。Where ...? には場所を答える。"},
+    {"id":"b31","lv":"e1","t":"whose","mode":"build","q":"Whose notebook is this?","bank":["It","is","Ken's","notebook","Who","does","the","at"],"ans":[["It","is","Ken's","notebook"],["It","is","Ken's"],["Ken's","notebook"],["Ken's"]],"ex":"Whose ...? は持ち主をたずねる質問。「ケンのノートです」は It is Ken's notebook. と答える。"}
   ]
 }
