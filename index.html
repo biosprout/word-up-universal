@@ -1238,6 +1238,8 @@ function talkSameSet(a,b){
   return x.every((v,i)=>v===y[i]);
 }
 /* 出題の優先順位。まちがえた型ほど先に出す */
+/* 同じ返答文から作った問題をまとめるための見出し。b11f2 → b11 */
+function talkSrc(q){ return String(q.id).replace(/f\d*$/,''); }
 function talkScore(q,today){
   const st=state.tstat&&state.tstat[q.id];
   if(!st||(st.c+st.w)===0)return 40;
@@ -1259,7 +1261,20 @@ function startTalk(lv,md){
   if(pool.length<3){ toast('この組み合わせの問題がまだ足りません'); return; }
   const today=dayNum();
   const sc=pool.map(q=>({q:q,s:talkScore(q,today)+Math.random()*6})).sort((a,b)=>b.s-a.s);
-  const list=shuffle(sc.slice(0,Math.min(TALK_N,pool.length)).map(x=>x.q));
+  // 同じ返答文から作った問題は、1回の中で1問までにする。
+  // b11 / b11f1 / b11f2 はどれも質問が同じなので、続けて出ると読むのが作業になる。
+  const used=new Set(), picked=[];
+  for(const x of sc){
+    const src=talkSrc(x.q);
+    if(used.has(src))continue;
+    used.add(src); picked.push(x.q);
+    if(picked.length>=Math.min(TALK_N,pool.length))break;
+  }
+  // それでも足りなければ、残りから補う
+  if(picked.length<Math.min(TALK_N,pool.length))
+    for(const x of sc){ if(picked.includes(x.q))continue; picked.push(x.q);
+      if(picked.length>=Math.min(TALK_N,pool.length))break; }
+  const list=shuffle(picked);
   tk={list:list,i:0,score:0,miss:[],answered:false,sel:[],typed:'',combo:0,maxCombo:0,
       lv:lv,md:md,ord:talkOrder(list[0]),t0:Date.now()};
   renderTalk();
@@ -1400,7 +1415,7 @@ function renderTalk(){
     const model=q.mode==='pick'?q.ch[q.a]
       :q.mode==='fill'?q.s.replace('___',q.ans[0])
       :q.ans[0].join(' ');
-    fb=`<div class="exp"><b>${wrong?(tk.near?'⭕ おしい！ 使う語は合っています。ならびを見直そう':'❌ もう一度、質問を読んでみよう'):'⭕ 正解'}</b>
+    fb=`<div class="exp"><b>${wrong?(tk.near?'⭕ おしい！ 使う語は合っています。ならびを見直そう':'❌ 答えの例とくらべてみよう'):'⭕ 正解'}</b>
       <div style="margin-top:6px">答えの例: <b>${esc(model)}</b>
         <button class="tkspk sm" onclick="speak('${model.replace(/'/g,"\\'")}')">🔊</button></div>
       <div style="margin-top:4px">${esc(q.ex)}</div></div>
@@ -2259,7 +2274,7 @@ function obDone(){
   if(isStandalone())renderHelp(); else renderAddHome();
 }
 
-const APP_VER='20260901f';
+const APP_VER='20260902a';
 
 /* 更新の確認と適用 */
 async function forceUpdate(){
