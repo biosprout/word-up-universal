@@ -1,5 +1,6 @@
 {
   "version": 3,
+  "contentVersion": "snapshot-fff3529",
   "levels": [
     {"id":"m1","name":"中1","file":"m1.json","count":899,"groups":28},
     {"id":"m2","name":"中2","file":"m2.json","count":1135,"groups":24},

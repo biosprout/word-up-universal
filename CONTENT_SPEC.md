@@ -36,6 +36,7 @@ WORD UP! の教材は2種類ある。
 ```json
 {
   "version": 3,
+  "contentVersion": "snapshot-fff3529",
   "levels": [
     {"id":"m1","name":"中1","file":"m1.json","count":899,"groups":28},
     {"id":"m2","name":"中2","file":"m2.json","count":1135,"groups":24},
@@ -51,6 +52,7 @@ WORD UP! の教材は2種類ある。
 | property | 必須 | 意味 |
 |---|---|---|
 | `version` | 必須 | `3` 固定 |
+| `contentVersion` | 必須 | 教材の版 ID（文字列、空にしない）。batch 取込で `batch_id` に更新される。アプリの教材更新バーがこの値の変化を検出する |
 | `levels[].id` | 必須 | レベル ID。`all` と `my` はアプリが予約している |
 | `levels[].name` | 必須 | 表示名。アプリのレベル選択に出る |
 | `levels[].file` | 必須 | `data/` からの相対ファイル名 |
@@ -184,6 +186,17 @@ python3 -m http.server 8000
 ```
 
 file:// では fetch が動かないので、必ずサーバ経由で開く。
+
+## contentVersion と教材更新バー
+
+`data/index.json` の `contentVersion` は教材の版 ID。アプリは起動時に読んだ値を覚えておき、window の focus / タブが visible に戻ったとき / visible 中は 30 分ごと（同一タブでは最低 60 秒間隔）に `data/index.json` を `cache: "no-store"` で読み直す。値が変わっていれば、学習を止めない小さなバー「🆕 新しい問題があります　[更新] [あとで]」を出す。
+
+- 値は不透明な文字列。大小比較はせず、等しいかどうかだけを見る
+- 初期値は `snapshot-<HEAD 短縮 hash>`。batch 取込時は importer がその batch の `batch_id` に更新する（WORD で talk.json だけを更新した場合も更新する）
+- 手で教材を直したときも、必ず `contentVersion` を新しい値（例: `manual-YYYYMMDD-a`）に変える。変えないと開きっぱなしの端末に更新が伝わらない
+- `更新` は reload、`あとで` は同じタブ・同じ version では再表示しない（別の version なら再表示する）。バーを出すだけでは Q や localStorage は変わらない
+- network error・offline・non-OK・JSON error は静かに無視する
+- `APP_VER` はコード・UI・学習ロジックの更新通知用。教材だけの更新では原則 `APP_VER` を変えず、`contentVersion` だけを更新する
 
 ## 9. Service Worker と教材更新の関係
 

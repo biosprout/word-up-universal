@@ -108,7 +108,8 @@ const RESERVED_GROUP = /^my/;   // my1, my2 …はアプリ内のマイ単語帳
 
 const idx = readJson('index.json');
 if(!idx){ finish([]); }
-checkKeys('index.json', '', idx, ['version', 'levels', 'total'], []);
+checkKeys('index.json', '', idx, ['version', 'contentVersion', 'levels', 'total'], []);
+checkStr('index.json', '', 'contentVersion', idx.contentVersion);   // 教材版 ID（batch 取込で batch_id に更新。空にしない）
 if(idx.version !== 3) err('index.json', '', `version は 3 である必要があります（今は ${idx.version}）`);
 if(!Array.isArray(idx.levels)) { err('index.json', '', 'levels は配列である必要があります'); finish([]); }
 
