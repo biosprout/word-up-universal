@@ -1,1 +1,12 @@
-{"version":3,"levels":[{"id":"m1","name":"中1","file":"m1.json","count":899,"groups":28},{"id":"m2","name":"中2","file":"m2.json","count":1135,"groups":24},{"id":"m3","name":"中3・高校受験","file":"m3.json","count":1285,"groups":21},{"id":"p2","name":"準2級レベル","file":"p2.json","count":1418,"groups":23},{"id":"e2","name":"2級レベル","file":"e2.json","count":1656,"groups":25},{"id":"p1","name":"準1級レベル","file":"p1.json","count":1579,"groups":23}],"total":7972}
+{
+  "version": 3,
+  "levels": [
+    {"id":"m1","name":"中1","file":"m1.json","count":899,"groups":28},
+    {"id":"m2","name":"中2","file":"m2.json","count":1135,"groups":24},
+    {"id":"m3","name":"中3・高校受験","file":"m3.json","count":1285,"groups":21},
+    {"id":"p2","name":"準2級レベル","file":"p2.json","count":1418,"groups":23},
+    {"id":"e2","name":"2級レベル","file":"e2.json","count":1656,"groups":25},
+    {"id":"p1","name":"準1級レベル","file":"p1.json","count":1579,"groups":23}
+  ],
+  "total": 7972
+}
