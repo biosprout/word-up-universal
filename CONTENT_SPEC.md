@@ -24,7 +24,12 @@ WORD UP! の教材は2種類ある。
 | `scripts/format-content.mjs` | | データ整形（同上） |
 | `sw.js` | | Service Worker。オフライン用にデータをキャッシュする |
 
-talk.json の元原稿 `talk_data.js`（git 管理外、引き継ぎ資料にある）がある場合、そちらが元で talk.json は生成物。両方を別々に直さない。
+
+## source of truth
+
+**教材の唯一の source of truth は `data/*.json` である。** 単語も talk 問題も JSON を直接編集し、`format-content.mjs` → `validate-content.mjs` を通して commit する。
+
+引き継ぎ資料にある `talk_data.js`（と `patch_talk.py` の変換）は、`data/talk.json` を最初に生成したときの元原稿で、今後の source of truth ではない。repo には含めない。talk 問題を直すときは `data/talk.json` を直接編集し、talk_data.js は更新しない（JSON と元原稿を別々に更新する運用はしない）。作問の方針（第4節）は talk_data.js の先頭コメントから CONTENT_SPEC に転記済みなので、元原稿を参照する必要はない。
 
 ## 2. manifest（data/index.json）の schema
 
@@ -184,7 +189,9 @@ file:// では fetch が動かないので、必ずサーバ経由で開く。
 
 - `sw.js` は index.html と `data/*.json` を network-first で取得する。オンラインなら常に最新 JSON が届き、取得できたものをキャッシュに保存する。オフライン時だけキャッシュを返す
 - JSON を更新するだけなら `sw.js` の `CACHE` 名を変えなくてよい
-- `data/` にファイルを増やしたら `sw.js` の `ASSETS` に追加し、`CACHE` の版数を上げる
+- `data/` にファイルを増やしたら `sw.js` の `ASSETS` に追加し、`CACHE` の版数を上げる（precache に失敗すると新しい Service Worker は install されず、旧版が使われ続ける。ASSETS の path 間違いに注意）
+- cache 名は `wordup-` で始まり（`CACHE_PREFIX`）、古い cache の掃除はこの prefix を持つものだけを対象にする。同じ origin にある他の BioSprout アプリの cache には触れない
+- 404 や 500 などの error response は cache に保存しない。network が error を返したときは、正常な cache があればそちらを返す
 
 ## 10. してはいけない変更
 
