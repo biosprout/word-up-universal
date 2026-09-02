@@ -105,6 +105,9 @@
     {"id":"b30","lv":"e1","t":"where","mode":"build","q":"Where do you want to go this summer?","bank":["I","want","to","go","to","Okinawa","went","at","yes","do"],"ans":[["I","want","to","go","to","Okinawa"]],"ex":"行きたい場所は I want to go to … で答える。"},
     {"id":"p31","lv":"e1","t":"when","mode":"pick","q":"When is the school festival?","ch":["Next Saturday.","In the gym.","With my friends.","For two hours."],"a":0,"ex":"When ...? は時をたずねる質問。日を答えるので Next Saturday. が自然で、場所や相手、長さを答える表現は合わない。"},
     {"id":"f21","lv":"e1","t":"where","mode":"fill","q":"Where is the post office?","s":"It is next ___ the bank.","ans":["to"],"ex":"「〜のとなり」は next to ... と表す。Where ...? には場所を答える。"},
-    {"id":"b31","lv":"e1","t":"whose","mode":"build","q":"Whose notebook is this?","bank":["It","is","Ken's","notebook","Who","does","the","at"],"ans":[["It","is","Ken's","notebook"],["It","is","Ken's"],["Ken's","notebook"],["Ken's"]],"ex":"Whose ...? は持ち主をたずねる質問。「ケンのノートです」は It is Ken's notebook. と答える。"}
+    {"id":"b31","lv":"e1","t":"whose","mode":"build","q":"Whose notebook is this?","bank":["It","is","Ken's","notebook","Who","does","the","at"],"ans":[["It","is","Ken's","notebook"],["It","is","Ken's"],["Ken's","notebook"],["Ken's"]],"ex":"Whose ...? は持ち主をたずねる質問。「ケンのノートです」は It is Ken's notebook. と答える。"},
+    {"id":"p32","lv":"e2","t":"who","mode":"pick","q":"Who are you waiting for?","ch":["I'm waiting for my sister.","For ten minutes.","At the station entrance.","Because we're going shopping."],"a":0,"ex":"Who ...? は人をたずねる質問。I'm waiting for my sister. は待っている相手を答え、時間・場所・理由を答える表現は質問に合わない。"},
+    {"id":"f22","lv":"e2","t":"wouldlike","mode":"fill","q":"Would you like some more rice?","s":"No, thank ___. I'm full.","ans":["you"],"ex":"Would you like ...? への丁寧な断りは No, thank you.。thank のあとには you を置く。"},
+    {"id":"b32","lv":"e2","t":"future","mode":"build","q":"What will you do if it rains tomorrow?","bank":["I'll","take","an","umbrella","took","takes","am","at"],"ans":[["I'll","take","an","umbrella"]],"ex":"これからすることは I'll + 動詞のもとの形で答える。take an umbrella で「傘を持っていく」。took や takes は I'll のあとには置かない。"}
   ]
 }
